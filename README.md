@@ -1,5 +1,5 @@
 # DSP4Guitar
-DSP effects for guitar - compendium
+DSP effects for guitar - compendium by Jon-Arve Constantine
 
 **Chapter 1: Gain, Distortion, Overdrive & Fuzz**. 
 First, I'll expand the technical explanations behind non-linear waveshaping and clipping techniques, then provide structured C++ implementations, followed by optimization strategies and effect variations.
