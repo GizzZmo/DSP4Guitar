@@ -1,11 +1,15 @@
 MultiEffectVST/
+
 │── Source/
+
 │   ├── MultiEffectProcessor.h
 │   ├── MultiEffectProcessor.cpp
 │   ├── MultiEffectEditor.h
 │   ├── MultiEffectEditor.cpp
 
+
 │   ├── Effects/
+
 │   │   ├── Distortion.h
 │   │   ├── Distortion.cpp
 │   │   ├── Delay.h
@@ -15,10 +19,13 @@ MultiEffectVST/
 │   │   ├── Modulation.h
 │   │   ├── Modulation.cpp
 
+
 │   ├── PresetManager.h
 │   ├── PresetManager.cpp
 
+
 │   ├── GUI/
+
 │   │   ├── PresetDropdown.h
 │   │   ├── PresetDropdown.cpp
 │   │   ├── WaveformDisplay.h
