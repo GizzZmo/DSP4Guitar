@@ -1,42 +1,37 @@
-MultiEffectVST/
+# MultiEffectVST Directory Structure
 
-│── Source/
+## Source
 
-│   ├── MultiEffectProcessor.h
-│   ├── MultiEffectProcessor.cpp
-│   ├── MultiEffectEditor.h
-│   ├── MultiEffectEditor.cpp
+- MultiEffectProcessor.h
+- MultiEffectProcessor.cpp
+- MultiEffectEditor.h
+- MultiEffectEditor.cpp
 
+### Effects
+- Distortion.h
+- Distortion.cpp
+- Delay.h
+- Delay.cpp
+- StereoWidening.h
+- StereoWidening.cpp
+- Modulation.h
+- Modulation.cpp
 
-│   ├── Effects/
+- PresetManager.h
+- PresetManager.cpp
 
-│   │   ├── Distortion.h
-│   │   ├── Distortion.cpp
-│   │   ├── Delay.h
-│   │   ├── Delay.cpp
-│   │   ├── StereoWidening.h
-│   │   ├── StereoWidening.cpp
-│   │   ├── Modulation.h
-│   │   ├── Modulation.cpp
+### GUI
+- PresetDropdown.h
+- PresetDropdown.cpp
+- WaveformDisplay.h
+- WaveformDisplay.cpp
+- EffectRouting.h
+- EffectRouting.cpp
 
+## Builds
 
-│   ├── PresetManager.h
-│   ├── PresetManager.cpp
+## Resources
 
+## README.md
 
-│   ├── GUI/
-
-│   │   ├── PresetDropdown.h
-│   │   ├── PresetDropdown.cpp
-│   │   ├── WaveformDisplay.h
-│   │   ├── WaveformDisplay.cpp
-│   │   ├── EffectRouting.h
-│   │   ├── EffectRouting.cpp
-
-│── Builds/
-
-│── Resources/
-
-│── README.md
-
-│── LICENSE.md
+## LICENSE.md
