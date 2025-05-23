@@ -39,31 +39,3 @@ Monitor processed signal in the interactive waveform display
 
 License
 MIT License - Open-source for personal and commercial use.
-
-
----
-
-## **About for GitHub Repository**
-```md
-## Multi-Effect VST Plugin
-🎸 **A JUCE-based multi-effect VST/AU plugin** with advanced signal processing.
-
-### **Built With**
-- **C++ (JUCE Framework)**
-- **Real-time DSP algorithms**
-- **MIDI integration**
-- **Custom preset system**
-- **Advanced effect chaining**
-
-### **Goals**
-- Provide an **efficient, professional-grade** audio processing plugin.
-- Enable **real-time control** via MIDI and automation.
-- Allow **modular effect routing** for user customization.
-
-### **Contributors**
-🚀 Maintained by **[Jon-Arve Constantine jonovesen@gmail.com]**
-
-### **Future Enhancements**
-- **Adaptive reverb**
-- **Granular pitch shifting**
-- **Machine learning-based dynamics control**
