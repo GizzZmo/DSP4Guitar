@@ -15,4 +15,4 @@ A multi-effect **VST/AU plugin** built using **JUCE** that integrates **distorti
 ### **Installation**
 1. Clone the repository:
    ```sh
-   git clone https://github.com/yourusername/MultiEffectVST.git
+   git clone https://github.com/GizzZmo/MultiEffectVST.git
