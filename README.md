@@ -17,7 +17,7 @@ A multi-effect **VST/AU plugin** built using **JUCE** that integrates **distorti
 ### **Installation**
 1. Clone the repository:
    ```sh
-   git clone [https://github.com/GizzZmo/MultiEffectVST.git](https://github.com/GizzZmo/DSP4Guitar.git)
+   git clone [https://github.com/GizzZmo/DSP4Guitar.git]
 Open Projucer and configure the project.
 
 Build using Visual Studio, Xcode, or CLion.
