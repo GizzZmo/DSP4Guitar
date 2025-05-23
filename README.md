@@ -61,7 +61,7 @@ MIT License - Open-source for personal and commercial use.
 - Allow **modular effect routing** for user customization.
 
 ### **Contributors**
-🚀 Maintained by **[Your Name]**
+🚀 Maintained by **[Jon-Arve Constantine jonovesen@gmail.com]**
 
 ### **Future Enhancements**
 - **Adaptive reverb**
