@@ -31,7 +31,18 @@
 ## Builds
 
 ## Resources
-
-## README.md
+-DSPGuitar.md
+-DeploymentOptimization.md
+-Multi-effect blending.md
+-README.md
+-VST_Multi_Guitar_FX.md
+-addingmorefx.md
+-additionalfx.md
+-filelist.md
+-interactivemidi.md
+-midiswitch.md
+-performance.md
+-presetvisualization.md
+-vstplugin.md
 
 ## LICENSE.md
