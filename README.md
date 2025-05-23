@@ -500,6 +500,7 @@ private:
 
 ## **Conclusion**
 This **compendium** now covers a **full suite of guitar DSP effects**, complete with:
+
 ✅ **Deep technical explanations**  
 ✅ **Optimized C++ implementations**  
 ✅ **Creative effect variations**  
