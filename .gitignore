@@ -1,0 +1,41 @@
+# Build directories
+build/
+Build/
+Builds/
+cmake-build-*/
+out/
+
+# JUCE framework (downloaded by CI)
+JUCE/
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Compiled binaries
+*.vst3
+*.component
+*.dll
+*.so
+*.dylib
+*.exe
+
+# Build artifacts
+*.o
+*.obj
+*.a
+*.lib
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+
+# OS specific
+Thumbs.db
+.DS_Store
