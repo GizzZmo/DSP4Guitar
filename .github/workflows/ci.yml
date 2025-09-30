@@ -61,7 +61,7 @@ jobs:
       
     - name: Upload artifacts (Ubuntu VST3)
       if: runner.os == 'Linux'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: DSP4Guitar-Linux-VST3
         path: build/*_artefacts/Release/VST3/*.vst3
@@ -69,7 +69,7 @@ jobs:
         
     - name: Upload artifacts (macOS)
       if: runner.os == 'macOS'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: DSP4Guitar-macOS
         path: |
@@ -79,7 +79,7 @@ jobs:
         
     - name: Upload artifacts (Windows VST3)
       if: runner.os == 'Windows'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: DSP4Guitar-Windows-VST3
         path: build/*_artefacts/Release/VST3/*.vst3
