@@ -42,6 +42,8 @@ A multi-effect **VST/AU plugin** built using **JUCE** that integrates **distorti
 - The project includes a CI/CD pipeline that automatically builds for Linux, macOS, and Windows
 - Artifacts are available from successful CI runs
 - Code quality checks are performed on each push/PR
+- 📖 See [CI Quick Start Guide](.github/CI_QUICKSTART.md) and [CI Documentation](.github/CI_DOCUMENTATION.md) for details
+- 🔍 Run `./scripts/pre-commit-check.sh` (or `.ps1` on Windows) to validate changes locally
 
 ### **How to Use**
 - Adjust effects via GUI sliders
