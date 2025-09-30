@@ -1,0 +1,146 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Set up environment (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libasound2-dev \
+          libjack-jackd2-dev \
+          libcurl4-openssl-dev \
+          libfreetype6-dev \
+          libx11-dev \
+          libxcomposite-dev \
+          libxcursor-dev \
+          libxinerama-dev \
+          libxrandr-dev \
+          libxrender-dev \
+          libwebkit2gtk-4.0-dev \
+          libglu1-mesa-dev \
+          mesa-common-dev
+          
+    - name: Cache JUCE
+      id: cache-juce
+      uses: actions/cache@v3
+      with:
+        path: JUCE
+        key: juce-${{ runner.os }}-7.0.9
+        
+    - name: Download JUCE
+      if: steps.cache-juce.outputs.cache-hit != 'true'
+      run: |
+        git clone --depth 1 --branch 7.0.9 https://github.com/juce-framework/JUCE.git
+        
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      
+    - name: Build
+      run: cmake --build build --config Release
+      
+    - name: Upload artifacts (Ubuntu VST3)
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v3
+      with:
+        name: DSP4Guitar-Linux-VST3
+        path: build/*_artefacts/Release/VST3/*.vst3
+        if-no-files-found: warn
+        
+    - name: Upload artifacts (macOS)
+      if: runner.os == 'macOS'
+      uses: actions/upload-artifact@v3
+      with:
+        name: DSP4Guitar-macOS
+        path: |
+          build/*_artefacts/Release/VST3/*.vst3
+          build/*_artefacts/Release/AU/*.component
+        if-no-files-found: warn
+        
+    - name: Upload artifacts (Windows VST3)
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v3
+      with:
+        name: DSP4Guitar-Windows-VST3
+        path: build/*_artefacts/Release/VST3/*.vst3
+        if-no-files-found: warn
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check for trailing whitespace
+      run: |
+        if grep -r --include='*.cpp' --include='*.h' --include='*.hpp' '[[:space:]]$' .; then
+          echo "Error: Trailing whitespace found"
+          exit 1
+        fi
+      continue-on-error: true
+      
+    - name: Check file formatting
+      run: |
+        echo "Checking for basic formatting issues..."
+        # Check for tabs in source files (could be optional)
+        if grep -r --include='*.cpp' --include='*.h' $'\t' . 2>/dev/null; then
+          echo "Warning: Tabs found in source files (consider using spaces)"
+        fi
+        echo "Basic formatting check completed"
+      continue-on-error: true
+      
+    - name: Check for basic C++ issues
+      run: |
+        echo "Running basic code quality checks..."
+        # Check for common issues
+        if grep -r --include='*.cpp' --include='*.h' 'printf\|cout' .; then
+          echo "Warning: Debug print statements found (printf/cout)"
+        fi
+        echo "Code quality check completed"
+      continue-on-error: true
+
+  documentation:
+    name: Check Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Verify README exists
+      run: |
+        if [ ! -f "README.md" ]; then
+          echo "Error: README.md not found"
+          exit 1
+        fi
+        echo "README.md found"
+        
+    - name: Check for LICENSE
+      run: |
+        if [ ! -f "LICENSE" ]; then
+          echo "Warning: LICENSE file not found"
+        else
+          echo "LICENSE file found"
+        fi
