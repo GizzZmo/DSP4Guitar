@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PluginProcessor.h"
+#include "MultiEffectProcessor.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
 //==============================================================================
