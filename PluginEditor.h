@@ -52,17 +52,6 @@ private:
     juce::Label phaserFeedbackLabel { {}, "Fbk" };
     juce::Label phaserMixLabel { {}, "Mix" };
 
-    // Flanger
-    juce::ToggleButton flangerOnButton { "On" };
-    juce::Slider flangerRateSlider;
-    juce::Slider flangerDepthSlider;
-    juce::Slider flangerFeedbackSlider;
-    juce::Slider flangerMixSlider;
-    juce::Label flangerRateLabel { {}, "Rate" };
-    juce::Label flangerDepthLabel { {}, "Depth" };
-    juce::Label flangerFeedbackLabel { {}, "Fbk" };
-    juce::Label flangerMixLabel { {}, "Mix" };
-
     // Chorus
     juce::ToggleButton chorusOnButton { "On" };
     juce::Slider chorusRateSlider;
