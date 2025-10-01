@@ -1,5 +1,9 @@
 #include "Modulation.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 Modulation::Modulation() {}
 
 void Modulation::process(juce::AudioBuffer<float>& buffer, float depth, float rate, float sampleRate) {
