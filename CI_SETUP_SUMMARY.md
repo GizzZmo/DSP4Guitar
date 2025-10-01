@@ -208,7 +208,6 @@ A complete CI/CD workflow system has been implemented for the DSP4Guitar project
 - ALSA development files
 - JACK development files
 - X11 libraries
-- WebKit2GTK
 - Mesa/OpenGL
 
 **macOS:**
