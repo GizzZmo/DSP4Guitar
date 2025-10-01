@@ -22,7 +22,6 @@ jobs:
     - name: Set up environment (Ubuntu)
       if: runner.os == 'Linux'
       run: |
-        sudo add-apt-repository universe
         sudo apt-get update
         sudo apt-get install -y \
           libasound2-dev \
@@ -35,7 +34,6 @@ jobs:
           libxinerama-dev \
           libxrandr-dev \
           libxrender-dev \
-          libwebkit2gtk-4.0-dev \
           libglu1-mesa-dev \
           mesa-common-dev
           
