@@ -28,12 +28,6 @@ MultiEffectProcessor::MultiEffectProcessor()
     phaserDepth = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("phaserDepth"));
     phaserFeedback = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("phaserFeedback"));
     phaserMix = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("phaserMix"));
-
-    flangerOn = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("flangerOn"));
-    flangerRate = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("flangerRate"));
-    flangerDepth = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("flangerDepth"));
-    flangerFeedback = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("flangerFeedback"));
-    flangerMix = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("flangerMix"));
     
     chorusOn = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("chorusOn"));
     chorusRate = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("chorusRate"));
@@ -80,13 +74,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout MultiEffectProcessor::create
     params.push_back(std::make_unique<juce::AudioParameterFloat>("phaserDepth", "Phaser Depth", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("phaserFeedback", "Phaser Fbk", juce::NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.3f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("phaserMix", "Phaser Mix", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
-
-    // --- Flanger ---
-    params.push_back(std::make_unique<juce::AudioParameterBool>("flangerOn", "Flanger On", false));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("flangerRate", "Flanger Rate", juce::NormalisableRange<float>(0.05f, 5.0f, 0.01f), 0.5f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("flangerDepth", "Flanger Depth", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("flangerFeedback", "Flanger Fbk", juce::NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.3f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("flangerMix", "Flanger Mix", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
 
     // --- Chorus ---
     params.push_back(std::make_unique<juce::AudioParameterBool>("chorusOn", "Chorus On", false));
@@ -165,14 +152,6 @@ void MultiEffectProcessor::updateParameters()
     phaser.setFeedback(phaserFeedback->get());
     phaser.setMix(phaserMix->get());
     effectChain.setBypassed<PhaserIndex>(!phaserOn->get());
-
-    // --- Flanger ---
-    auto& flanger = effectChain.get<FlangerIndex>();
-    flanger.setRate(flangerRate->get());
-    flanger.setDepth(flangerDepth->get());
-    flanger.setFeedback(flangerFeedback->get());
-    flanger.setMix(flangerMix->get());
-    effectChain.setBypassed<FlangerIndex>(!flangerOn->get());
 
     // --- Chorus ---
     auto& chorus = effectChain.get<ChorusIndex>();

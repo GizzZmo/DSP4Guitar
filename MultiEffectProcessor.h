@@ -136,7 +136,7 @@ public:
         
         juce::dsp::ProcessContextReplacing<float> gainContext(outputBlock);
         gainContext.isBypassed = context.isBypassed;
-        juce::dsp::AudioBlock<float>(outputBlock) = inputBlock; // Copy input to output first
+        outputBlock.copyFrom(inputBlock); // Copy input to output first
         gain.process(gainContext); // Apply gain
 
     }
@@ -192,7 +192,6 @@ private:
         BitcrusherIndex,
         RingModIndex,
         PhaserIndex,
-        FlangerIndex,
         ChorusIndex,
         TremoloIndex,
         DelayIndex,
@@ -206,7 +205,6 @@ private:
         Bitcrusher,
         RingModulator,
         juce::dsp::Phaser<float>,
-        juce::dsp::Flanger<float>,
         juce::dsp::Chorus<float>,
         Tremolo,
         juce::dsp::DelayLine<float>, // Simplified Tape Delay
@@ -228,12 +226,6 @@ private:
     juce::AudioParameterFloat* phaserDepth = nullptr;
     juce::AudioParameterFloat* phaserFeedback = nullptr;
     juce::AudioParameterFloat* phaserMix = nullptr;
-
-    juce::AudioParameterBool* flangerOn = nullptr;
-    juce::AudioParameterFloat* flangerRate = nullptr;
-    juce::AudioParameterFloat* flangerDepth = nullptr;
-    juce::AudioParameterFloat* flangerFeedback = nullptr;
-    juce::AudioParameterFloat* flangerMix = nullptr;
 
     juce::AudioParameterBool* chorusOn = nullptr;
     juce::AudioParameterFloat* chorusRate = nullptr;
