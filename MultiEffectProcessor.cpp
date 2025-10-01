@@ -1,5 +1,5 @@
-#include "PluginProcessor.h"
-#include "PluginEditor.h" // You'll need to create this
+#include "MultiEffectProcessor.h"
+#include "PluginEditor.h"
 
 //==============================================================================
 MultiEffectProcessor::MultiEffectProcessor()
