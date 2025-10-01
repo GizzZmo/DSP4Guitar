@@ -136,7 +136,7 @@ public:
         
         juce::dsp::ProcessContextReplacing<float> gainContext(outputBlock);
         gainContext.isBypassed = context.isBypassed;
-        juce::dsp::AudioBlock<float>(outputBlock) = inputBlock; // Copy input to output first
+        outputBlock.copyFrom(inputBlock); // Copy input to output first
         gain.process(gainContext); // Apply gain
 
     }
