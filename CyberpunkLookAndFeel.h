@@ -191,9 +191,10 @@ public:
         // Text
         auto textBounds = bounds.withLeft(ledBox.getRight() + 5.0f);
         g.setFont(getCustomFont().withHeight(12.0f));
-        g.setColour(button.getToggleState() ? matrixGreen : matrixGray);
+        auto textColour = button.getToggleState() ? matrixGreen : matrixGray;
         if (shouldDrawButtonAsHighlighted)
-            g.setColour(g.getCurrentColour().brighter(0.2f));
+            textColour = textColour.brighter (0.2f);
+        g.setColour (textColour);
         g.drawFittedText(button.getButtonText(), textBounds.toNearestInt(),
                          juce::Justification::centredLeft, 1);
     }
