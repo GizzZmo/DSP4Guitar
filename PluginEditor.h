@@ -1,13 +1,21 @@
 #pragma once
 
 #include "MultiEffectProcessor.h"
+#include "CyberpunkLookAndFeel.h"
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <array>
+#include <vector>
 
 //==============================================================================
 /**
-*/
+ * MultiEffectProcessorEditor
+ *
+ * Cyberpunk / Matrix-terminal themed plugin UI.
+ * Renders a scrolling Matrix-rain animation in the header, neon-bordered
+ * effect panels, and custom rotary knobs / LED-style toggle buttons.
+ */
 class MultiEffectProcessorEditor : public juce::AudioProcessorEditor,
-                                   public juce::Timer // Inherit from Timer for animations
+                                   public juce::Timer
 {
 public:
     MultiEffectProcessorEditor(MultiEffectProcessor&);
@@ -16,16 +24,31 @@ public:
     //==============================================================================
     void paint(juce::Graphics&) override;
     void resized() override;
-    void timerCallback() override; // For animations
+    void timerCallback() override;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
     MultiEffectProcessor& audioProcessor;
 
-    // --- UI Elements ---
-    // We'll declare sliders for continuous parameters and buttons (toggles) for On/Off.
-    // Grouping them by effect can help keep things organised.
+    // ------------------------------------------------------------------
+    // Cyberpunk Look-and-Feel (must outlive all child components)
+    CyberpunkLookAndFeel cyberpunkLF;
+
+    // ------------------------------------------------------------------
+    // Matrix-rain animation state
+    struct MatrixDrop
+    {
+        float x, y;
+        float speed;
+        int   length;
+        int   charOffset;
+        float opacity;
+    };
+    std::vector<MatrixDrop> matrixDrops;
+    static const juce::String matrixChars;
+    int matrixAnimCounter = 0;
+
+    // ------------------------------------------------------------------
+    // UI Elements – grouped by effect
 
     // Bitcrusher
     juce::ToggleButton bitcrusherOnButton { "On" };
@@ -90,17 +113,27 @@ private:
     juce::Label reverbDryLevelLabel { {}, "Dry" };
     juce::Label reverbWidthLabel { {}, "Width" };
 
-    // --- Parameter Attachments ---
-    // These link the UI elements to the APVTS in the processor.
-    // We use std::unique_ptr to manage their lifetime automatically.
+    // ------------------------------------------------------------------
+    // Parameter Attachments
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
 
     std::vector<std::unique_ptr<SliderAttachment>> sliderAttachments;
     std::vector<std::unique_ptr<ButtonAttachment>> buttonAttachments;
 
-    // Function to add a label to a slider
-    void addLabelAndMakeVisible(juce::Slider& slider, juce::Label& label);
+    // ------------------------------------------------------------------
+    // Layout helpers
+    /** Draws one cyberpunk effect panel (border, title, active indicator). */
+    void drawEffectPanel (juce::Graphics& g,
+                          juce::Rectangle<int> bounds,
+                          const juce::String& name,
+                          bool isActive);
+
+    /** Configures a rotary slider and makes both it and its label visible. */
+    void setupRotarySlider (juce::Slider& slider, juce::Label& label);
+
+    /** Returns the bounds rectangle for effect panel at column col, row row. */
+    juce::Rectangle<int> panelBounds (int col, int row) const;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MultiEffectProcessorEditor)
 };

@@ -247,8 +247,7 @@ void MultiEffectProcessor::changeProgramName(int index, const juce::String& newN
 bool MultiEffectProcessor::hasEditor() const { return true; }
 juce::AudioProcessorEditor* MultiEffectProcessor::createEditor()
 {
-    // return new MultiEffectProcessorEditor (*this); // Create this file
-    return new juce::GenericAudioProcessorEditor(*this); // Use generic for now
+    return new MultiEffectProcessorEditor(*this);
 }
 void MultiEffectProcessor::getStateInformation(juce::MemoryBlock& destData)
 {

@@ -29,7 +29,9 @@ target_sources(DSP4Guitar
     PRIVATE
         MultiEffectProcessor.cpp
         MultiEffectProcessor.h
+        PluginEditor.cpp
         PluginEditor.h
+        CyberpunkLookAndFeel.h
         Delay.cpp
         Delay.h
         Distortion.cpp
