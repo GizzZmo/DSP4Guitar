@@ -1,11 +1,28 @@
-# Multi-Effect VST Plugin
+# DSP4Guitar — Cyberpunk Multi-Effect Processor
 
 [![CI](https://github.com/GizzZmo/DSP4Guitar/actions/workflows/ci.yml/badge.svg)](https://github.com/GizzZmo/DSP4Guitar/actions/workflows/ci.yml)
 
+> *"Plug in. Drop out. Enter the Matrix."*
+
+![DSP4Guitar Banner](assets/screenshots/banner.png)
+
+---
+
 ### **Overview**
-A multi-effect **VST/AU plugin** built using **JUCE** that integrates **distortion, delay, stereo widening, modulation blending, MIDI-controlled preset switching**, and **dynamic effect interaction**.
+A multi-effect **VST/AU plugin** built using **JUCE** wrapped in a full **cyberpunk / Matrix-terminal aesthetic** — neon-green-on-black UI, scrolling Matrix-rain header animation, glowing LED toggles, and custom rotary knobs.  It integrates **distortion, delay, stereo widening, modulation blending, MIDI-controlled preset switching**, and **dynamic effect interaction**.
+
+### **UI Preview**
+
+| Plugin UI | Logo |
+|-----------|------|
+| ![Plugin UI](assets/screenshots/plugin_ui.png) | ![Logo](assets/icons/dsp4guitar_logo.png) |
+
+> The SVG vector mockup is at [`assets/screenshots/plugin_ui.svg`](assets/screenshots/plugin_ui.svg).
+
+---
 
 ### **Features**
+✅ **Cyberpunk / Matrix terminal UI** — neon green `#00FF41`, dark-panel aesthetic, scrolling rain animation  
 ✅ **Distortion with dynamic response**  
 ✅ **Stereo widening with Mid-Side processing**  
 ✅ **Delay with feedback linked to distortion**  
@@ -13,6 +30,19 @@ A multi-effect **VST/AU plugin** built using **JUCE** that integrates **distorti
 ✅ **MIDI-based preset switching**  
 ✅ **Custom effect routing configurations**  
 ✅ **Real-time waveform visualization**  
+
+### **Cyberpunk Colour Palette**
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| Matrix Green | `#00FF41` | Active knobs, borders, LEDs |
+| Dark Green | `#00B300` | Track fills, secondary labels |
+| Near-Black | `#050505` | Knob backgrounds |
+| Dark BG | `#0D0D1A` | Window background |
+| Cyan | `#00FFFF` | Accent labels, corner brackets |
+| Gray | `#444444` | Inactive / disabled elements |
+
+---
 
 ### **Installation**
 1. Clone the repository:
@@ -54,3 +84,4 @@ A multi-effect **VST/AU plugin** built using **JUCE** that integrates **distorti
 
 ### **License**
 MIT License - Open-source for personal and commercial use.
+

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0d1020"/>
+      <stop offset="100%" stop-color="#050508"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="softglow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="128" cy="128" r="124" fill="url(#bgGrad)"/>
+
+  <!-- Outer glow ring -->
+  <circle cx="128" cy="128" r="124" fill="none" stroke="#00ff41" stroke-opacity="0.5" stroke-width="2"/>
+  <circle cx="128" cy="128" r="118" fill="none" stroke="#00ff41" stroke-opacity="0.15" stroke-width="4"/>
+
+  <!-- Hex wire spokes -->
+  <g stroke="#00b300" stroke-opacity="0.35" stroke-width="1">
+    <line x1="128" y1="128" x2="220" y2="128"/>
+    <line x1="128" y1="128" x2="174" y2="48"/>
+    <line x1="128" y1="128" x2="82"  y2="48"/>
+    <line x1="128" y1="128" x2="36"  y2="128"/>
+    <line x1="128" y1="128" x2="82"  y2="208"/>
+    <line x1="128" y1="128" x2="174" y2="208"/>
+  </g>
+
+  <!-- Inner circuit ring -->
+  <circle cx="128" cy="128" r="74" fill="none" stroke="#00b300" stroke-opacity="0.4" stroke-width="1"/>
+
+  <!-- Corner nodes on ring -->
+  <g fill="#00ff41" fill-opacity="0.7">
+    <circle cx="202" cy="128" r="3"/>
+    <circle cx="165" cy="64"  r="3"/>
+    <circle cx="91"  cy="64"  r="3"/>
+    <circle cx="54"  cy="128" r="3"/>
+    <circle cx="91"  cy="192" r="3"/>
+    <circle cx="165" cy="192" r="3"/>
+  </g>
+
+  <!-- "D4G" glow layer -->
+  <text x="128" y="122" font-family="'DejaVu Sans Mono','Courier New',monospace"
+        font-size="38" font-weight="bold" fill="#00b300" fill-opacity="0.35"
+        text-anchor="middle" filter="url(#softglow)">D4G</text>
+
+  <!-- "D4G" main text -->
+  <text x="128" y="122" font-family="'DejaVu Sans Mono','Courier New',monospace"
+        font-size="38" font-weight="bold" fill="#00ff41"
+        text-anchor="middle" filter="url(#glow)">D4G</text>
+
+  <!-- Subtitle -->
+  <text x="128" y="148" font-family="'DejaVu Sans Mono','Courier New',monospace"
+        font-size="12" fill="#00ffff" fill-opacity="0.85"
+        text-anchor="middle">DSP4GUITAR</text>
+
+  <!-- Version micro-text -->
+  <text x="128" y="168" font-family="'DejaVu Sans Mono','Courier New',monospace"
+        font-size="9" fill="#00b300" fill-opacity="0.6"
+        text-anchor="middle">CYBERPUNK FX</text>
+</svg>
