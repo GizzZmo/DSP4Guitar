@@ -33,7 +33,7 @@ static constexpr int kPanelH   = 200;  // height of one effect panel
 static constexpr int kPanelPad = 2;    // gap between panels
 
 static constexpr int kEditorW  = kPanelW * 3 + kPanelPad * 4;
-static constexpr int kEditorH  = kHeaderH + kPanelH * 3 + kPanelPad * 4;
+static constexpr int kEditorH  = kHeaderH + kPanelH * 4 + kPanelPad * 5;
 
 //==============================================================================
 // Layout helpers
@@ -128,6 +128,34 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     setupRotarySlider(reverbDryLevelSlider, reverbDryLevelLabel);
     setupRotarySlider(reverbWidthSlider,    reverbWidthLabel);
 
+    // Multiband Compressor
+    addAndMakeVisible(compressorOnButton);
+    compressorOnButton.setLookAndFeel(&cyberpunkLF);
+    setupRotarySlider(compressorLowThreshSlider,  compressorLowThreshLabel);
+    setupRotarySlider(compressorMidThreshSlider,  compressorMidThreshLabel);
+    setupRotarySlider(compressorHighThreshSlider, compressorHighThreshLabel);
+    setupRotarySlider(compressorRatioSlider,      compressorRatioLabel);
+    setupRotarySlider(compressorAttackSlider,     compressorAttackLabel);
+    setupRotarySlider(compressorReleaseSlider,    compressorReleaseLabel);
+    setupRotarySlider(compressorMakeupSlider,     compressorMakeupLabel);
+
+    // Wah Wah
+    addAndMakeVisible(wahOnButton);
+    wahOnButton.setLookAndFeel(&cyberpunkLF);
+    setupRotarySlider(wahRateSlider,      wahRateLabel);
+    setupRotarySlider(wahDepthSlider,     wahDepthLabel);
+    setupRotarySlider(wahFreqSlider,      wahFreqLabel);
+    setupRotarySlider(wahResonanceSlider, wahResonanceLabel);
+    setupRotarySlider(wahMixSlider,       wahMixLabel);
+
+    // Fuzz
+    addAndMakeVisible(fuzzOnButton);
+    fuzzOnButton.setLookAndFeel(&cyberpunkLF);
+    setupRotarySlider(fuzzDriveSlider, fuzzDriveLabel);
+    setupRotarySlider(fuzzToneSlider,  fuzzToneLabel);
+    setupRotarySlider(fuzzLevelSlider, fuzzLevelLabel);
+    setupRotarySlider(fuzzMixSlider,   fuzzMixLabel);
+
     // ------------------------------------------------------------------
     // Parameter attachments
     auto attach = [&](const juce::String& id, juce::Slider& s) {
@@ -173,6 +201,28 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     attach("reverbDryLevel",   reverbDryLevelSlider);
     attach("reverbWidth",      reverbWidthSlider);
     attachBtn("reverbOn",      reverbOnButton);
+
+    attach("compressorLowThresh",  compressorLowThreshSlider);
+    attach("compressorMidThresh",  compressorMidThreshSlider);
+    attach("compressorHighThresh", compressorHighThreshSlider);
+    attach("compressorRatio",      compressorRatioSlider);
+    attach("compressorAttack",     compressorAttackSlider);
+    attach("compressorRelease",    compressorReleaseSlider);
+    attach("compressorMakeup",     compressorMakeupSlider);
+    attachBtn("compressorOn",      compressorOnButton);
+
+    attach("wahRate",      wahRateSlider);
+    attach("wahDepth",     wahDepthSlider);
+    attach("wahFreq",      wahFreqSlider);
+    attach("wahResonance", wahResonanceSlider);
+    attach("wahMix",       wahMixSlider);
+    attachBtn("wahOn",     wahOnButton);
+
+    attach("fuzzDrive", fuzzDriveSlider);
+    attach("fuzzTone",  fuzzToneSlider);
+    attach("fuzzLevel", fuzzLevelSlider);
+    attach("fuzzMix",   fuzzMixSlider);
+    attachBtn("fuzzOn", fuzzOnButton);
 
     setSize(kEditorW, kEditorH);
     startTimerHz(30);
@@ -294,9 +344,10 @@ void MultiEffectProcessorEditor::paint(juce::Graphics& g)
 
     // ------------------------------------------------------------------ effect panels
     // Panel draw order mirrors resized() layout (row, col):
-    //  Row 0: Bitcrusher [0,0] | RingMod [1,0] | Tremolo  [2,0]
-    //  Row 1: Phaser     [0,1] | Chorus  [1,1] | [empty]
-    //  Row 2: Delay      [0,2] | Reverb  [1,2] | [empty]
+    //  Row 0: Bitcrusher [0,0] | RingMod     [1,0] | Tremolo   [2,0]
+    //  Row 1: Phaser     [0,1] | Chorus      [1,1] | Compressor[2,1]
+    //  Row 2: Delay      [0,2] | Reverb      [1,2] | WahWah    [2,2]
+    //  Row 3: Fuzz       [0,3] | [empty]            | [empty]
 
     auto* apvts = &audioProcessor.apvts;
     auto isOn   = [&](const juce::String& id) -> bool
@@ -311,8 +362,11 @@ void MultiEffectProcessorEditor::paint(juce::Graphics& g)
     drawEffectPanel(g, panelBounds(2, 0), "TREMOLO",    isOn("tremoloOn"));
     drawEffectPanel(g, panelBounds(0, 1), "PHASER",     isOn("phaserOn"));
     drawEffectPanel(g, panelBounds(1, 1), "CHORUS",     isOn("chorusOn"));
+    drawEffectPanel(g, panelBounds(2, 1), "COMPRESSOR", isOn("compressorOn"));
     drawEffectPanel(g, panelBounds(0, 2), "DELAY",      isOn("delayOn"));
     drawEffectPanel(g, panelBounds(1, 2), "REVERB",     isOn("reverbOn"));
+    drawEffectPanel(g, panelBounds(2, 2), "WAH-WAH",    isOn("wahOn"));
+    drawEffectPanel(g, panelBounds(0, 3), "FUZZ",       isOn("fuzzOn"));
 }
 
 //==============================================================================
@@ -502,5 +556,52 @@ void MultiEffectProcessorEditor::resized()
             { {&reverbDryLevelSlider, &reverbDryLevelLabel},
               {&reverbWidthSlider,    &reverbWidthLabel} },
             72, 58, 14);
+    }
+
+    // ------------------------------------------------------------------
+    // Row 1 (cont.) – Compressor | Row 2 (cont.) – WahWah | Row 3 – Fuzz
+
+    {
+        auto p = panelBounds(2, 1);           // Compressor  (7 knobs: 3 + 4)
+        placeToggle(compressorOnButton, p);
+        const auto sliderArea = p.withTrimmedTop(32).reduced(6, 2);
+        const int halfH = sliderArea.getHeight() / 2;
+        placeKnobRow(sliderArea.withHeight(halfH), 3,
+            { {&compressorLowThreshSlider,  &compressorLowThreshLabel},
+              {&compressorMidThreshSlider,  &compressorMidThreshLabel},
+              {&compressorHighThreshSlider, &compressorHighThreshLabel} },
+            72, 58, 14);
+        placeKnobRow(sliderArea.withTrimmedTop(halfH), 4,
+            { {&compressorRatioSlider,   &compressorRatioLabel},
+              {&compressorAttackSlider,  &compressorAttackLabel},
+              {&compressorReleaseSlider, &compressorReleaseLabel},
+              {&compressorMakeupSlider,  &compressorMakeupLabel} },
+            54, 54, 14);
+    }
+    {
+        auto p = panelBounds(2, 2);           // WahWah  (5 knobs: 3 + 2)
+        placeToggle(wahOnButton, p);
+        const auto sliderArea = p.withTrimmedTop(32).reduced(6, 2);
+        const int halfH = sliderArea.getHeight() / 2;
+        placeKnobRow(sliderArea.withHeight(halfH), 3,
+            { {&wahRateSlider,  &wahRateLabel},
+              {&wahDepthSlider, &wahDepthLabel},
+              {&wahMixSlider,   &wahMixLabel} },
+            72, 58, 14);
+        placeKnobRow(sliderArea.withTrimmedTop(halfH), 2,
+            { {&wahFreqSlider,      &wahFreqLabel},
+              {&wahResonanceSlider, &wahResonanceLabel} },
+            72, 58, 14);
+    }
+    {
+        auto p = panelBounds(0, 3);           // Fuzz  (4 knobs)
+        placeToggle(fuzzOnButton, p);
+        const auto sliderArea = p.withTrimmedTop(32).reduced(6, 4);
+        placeKnobRow(sliderArea, 4,
+            { {&fuzzDriveSlider, &fuzzDriveLabel},
+              {&fuzzToneSlider,  &fuzzToneLabel},
+              {&fuzzLevelSlider, &fuzzLevelLabel},
+              {&fuzzMixSlider,   &fuzzMixLabel} },
+            54, 72, 16);
     }
 }
