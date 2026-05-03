@@ -158,9 +158,28 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
 
     // ------------------------------------------------------------------
     // Parameter attachments
-    auto attach = [&](const juce::String& id, juce::Slider& s) {
+    auto attach = [&](const juce::String& id, juce::Slider& s)
+    {
         sliderAttachments.push_back(
             std::make_unique<SliderAttachment>(audioProcessor.apvts, id, s));
+
+        // Double-click resets to the parameter's default value
+        if (auto* param = dynamic_cast<juce::RangedAudioParameter*>(
+                audioProcessor.apvts.getParameter(id)))
+        {
+            const auto& range = param->getNormalisableRange();
+            const float defaultVal = range.convertFrom0to1(param->getDefaultValue());
+            s.setDoubleClickReturnValue(true, static_cast<double>(defaultVal));
+
+            // Tooltip: full name, range, and reset hint
+            const juce::String tip =
+                param->getName(256)
+                + "\nRange: " + juce::String(range.start, 2)
+                + " \xe2\x80\x93 " + juce::String(range.end, 2)
+                + "\nDefault: " + juce::String(defaultVal, 2)
+                + "\n\xc2\xbb Double-click to reset";
+            s.setTooltip(tip);
+        }
     };
     auto attachBtn = [&](const juce::String& id, juce::ToggleButton& b) {
         buttonAttachments.push_back(
@@ -357,23 +376,24 @@ void MultiEffectProcessorEditor::paint(juce::Graphics& g)
         return false;
     };
 
-    drawEffectPanel(g, panelBounds(0, 0), "BITCRUSHER", isOn("bitcrusherOn"));
-    drawEffectPanel(g, panelBounds(1, 0), "RING MOD",   isOn("ringModOn"));
-    drawEffectPanel(g, panelBounds(2, 0), "TREMOLO",    isOn("tremoloOn"));
-    drawEffectPanel(g, panelBounds(0, 1), "PHASER",     isOn("phaserOn"));
-    drawEffectPanel(g, panelBounds(1, 1), "CHORUS",     isOn("chorusOn"));
-    drawEffectPanel(g, panelBounds(2, 1), "COMPRESSOR", isOn("compressorOn"));
-    drawEffectPanel(g, panelBounds(0, 2), "DELAY",      isOn("delayOn"));
-    drawEffectPanel(g, panelBounds(1, 2), "REVERB",     isOn("reverbOn"));
-    drawEffectPanel(g, panelBounds(2, 2), "WAH-WAH",    isOn("wahOn"));
-    drawEffectPanel(g, panelBounds(0, 3), "FUZZ",       isOn("fuzzOn"));
+    drawEffectPanel(g, panelBounds(0, 0), "BITCRUSHER", isOn("bitcrusherOn"),  1);
+    drawEffectPanel(g, panelBounds(1, 0), "RING MOD",   isOn("ringModOn"),     4);
+    drawEffectPanel(g, panelBounds(2, 0), "TREMOLO",    isOn("tremoloOn"),     8);
+    drawEffectPanel(g, panelBounds(0, 1), "PHASER",     isOn("phaserOn"),      6);
+    drawEffectPanel(g, panelBounds(1, 1), "CHORUS",     isOn("chorusOn"),      7);
+    drawEffectPanel(g, panelBounds(2, 1), "COMPRESSOR", isOn("compressorOn"),  3);
+    drawEffectPanel(g, panelBounds(0, 2), "DELAY",      isOn("delayOn"),       9);
+    drawEffectPanel(g, panelBounds(1, 2), "REVERB",     isOn("reverbOn"),     10);
+    drawEffectPanel(g, panelBounds(2, 2), "WAH-WAH",    isOn("wahOn"),         5);
+    drawEffectPanel(g, panelBounds(0, 3), "FUZZ",       isOn("fuzzOn"),        2);
 }
 
 //==============================================================================
 void MultiEffectProcessorEditor::drawEffectPanel(juce::Graphics& g,
                                                   juce::Rectangle<int> bounds,
                                                   const juce::String& name,
-                                                  bool isActive)
+                                                  bool isActive,
+                                                  int chainOrder)
 {
     using CP = CyberpunkLookAndFeel;
 
@@ -410,6 +430,16 @@ void MultiEffectProcessorEditor::drawEffectPanel(juce::Graphics& g,
                static_cast<int>(headerStrip.getWidth()) - 60,
                static_cast<int>(headerStrip.getHeight()),
                juce::Justification::centred);
+
+    // Chain-order badge (top-right of header strip, e.g. "#1")
+    g.setFont(CyberpunkLookAndFeel::getCustomFont().withHeight(10.0f));
+    g.setColour(isActive ? CP::matrixCyan.withAlpha(0.85f) : CP::matrixGray.withAlpha(0.55f));
+    g.drawText("#" + juce::String(chainOrder),
+               static_cast<int>(headerStrip.getRight()) - 28,
+               static_cast<int>(headerStrip.getY()),
+               26,
+               static_cast<int>(headerStrip.getHeight()),
+               juce::Justification::centredRight);
 
     // Corner brackets (decorative)
     if (isActive)

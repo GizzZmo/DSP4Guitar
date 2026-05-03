@@ -164,17 +164,21 @@ private:
 
     // ------------------------------------------------------------------
     // Layout helpers
-    /** Draws one cyberpunk effect panel (border, title, active indicator). */
+    /** Draws one cyberpunk effect panel (border, title, active indicator, chain order badge). */
     void drawEffectPanel (juce::Graphics& g,
                           juce::Rectangle<int> bounds,
                           const juce::String& name,
-                          bool isActive);
+                          bool isActive,
+                          int chainOrder);
 
     /** Configures a rotary slider and makes both it and its label visible. */
     void setupRotarySlider (juce::Slider& slider, juce::Label& label);
 
     /** Returns the bounds rectangle for effect panel at column col, row row. */
     juce::Rectangle<int> panelBounds (int col, int row) const;
+
+    // Tooltip window – shows parameter info on hover
+    juce::TooltipWindow tooltipWindow { this, 600 };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MultiEffectProcessorEditor)
 };
