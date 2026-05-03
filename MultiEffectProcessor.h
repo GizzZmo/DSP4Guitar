@@ -311,17 +311,22 @@ public:
         for (int s = 0; s < numSamples; ++s)
         {
             const float lfoVal = lfo.processSample(0.0f); // -1 to +1
-            const float freq   = juce::jlimit(200.0f, 4000.0f,
-                                              centerFreq + lfoVal * depth * sweepRange);
-            const auto newCoeffs = juce::dsp::IIR::Coefficients<float>::makeBandPass(
-                sampleRate, freq, resonance);
-            for (auto& f : filters)
-                f.coefficients = newCoeffs;
+
+            // Update filter coefficients every 8 samples to reduce CPU load
+            if ((coeffCounter++ & 7) == 0)
+            {
+                const float freq = juce::jlimit(200.0f, 4000.0f,
+                                                centerFreq + lfoVal * depth * sweepRange);
+                const auto newCoeffs = juce::dsp::IIR::Coefficients<float>::makeBandPass(
+                    sampleRate, freq, resonance);
+                for (auto& f : filters)
+                    f.coefficients = newCoeffs;
+            }
 
             for (int ch = 0; ch < numChannels; ++ch)
             {
                 const float in       = inBlock.getSample(ch, s);
-                const float filtered = filters[ch % 2].processSample(in);
+                const float filtered = filters[ch].processSample(in);
                 outBlock.setSample(ch, s, (1.0f - mix) * in + mix * filtered);
             }
         }
@@ -331,6 +336,7 @@ public:
     {
         lfo.reset();
         for (auto& f : filters) f.reset();
+        coeffCounter = 0;
     }
 
     void setRate(float newRate)       { rate = newRate; }
@@ -351,6 +357,7 @@ private:
     float centerFreq  = 1500.0f;
     float resonance   = 4.0f;
     float mix         = 1.0f;
+    int   coeffCounter = 0;
 };
 
 //==============================================================================

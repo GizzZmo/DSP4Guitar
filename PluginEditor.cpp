@@ -365,7 +365,7 @@ void MultiEffectProcessorEditor::paint(juce::Graphics& g)
     drawEffectPanel(g, panelBounds(2, 1), "COMPRESSOR", isOn("compressorOn"));
     drawEffectPanel(g, panelBounds(0, 2), "DELAY",      isOn("delayOn"));
     drawEffectPanel(g, panelBounds(1, 2), "REVERB",     isOn("reverbOn"));
-    drawEffectPanel(g, panelBounds(2, 2), "WAH WAH",    isOn("wahOn"));
+    drawEffectPanel(g, panelBounds(2, 2), "WAH-WAH",    isOn("wahOn"));
     drawEffectPanel(g, panelBounds(0, 3), "FUZZ",       isOn("fuzzOn"));
 }
 
