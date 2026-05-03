@@ -49,6 +49,28 @@ MultiEffectProcessor::MultiEffectProcessor()
     reverbWetLevel = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("reverbWetLevel"));
     reverbDryLevel = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("reverbDryLevel"));
     reverbWidth = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("reverbWidth"));
+
+    compressorOn = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("compressorOn"));
+    compressorLowThresh = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("compressorLowThresh"));
+    compressorMidThresh = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("compressorMidThresh"));
+    compressorHighThresh = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("compressorHighThresh"));
+    compressorRatio = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("compressorRatio"));
+    compressorAttack = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("compressorAttack"));
+    compressorRelease = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("compressorRelease"));
+    compressorMakeup = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("compressorMakeup"));
+
+    wahOn = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("wahOn"));
+    wahRate = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("wahRate"));
+    wahDepth = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("wahDepth"));
+    wahFreq = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("wahFreq"));
+    wahResonance = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("wahResonance"));
+    wahMix = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("wahMix"));
+
+    fuzzOn = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("fuzzOn"));
+    fuzzDrive = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("fuzzDrive"));
+    fuzzTone = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("fuzzTone"));
+    fuzzLevel = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("fuzzLevel"));
+    fuzzMix = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("fuzzMix"));
 }
 
 MultiEffectProcessor::~MultiEffectProcessor() {}
@@ -99,6 +121,31 @@ juce::AudioProcessorValueTreeState::ParameterLayout MultiEffectProcessor::create
     params.push_back(std::make_unique<juce::AudioParameterFloat>("reverbWetLevel", "Wet Level", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.33f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("reverbDryLevel", "Dry Level", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.6f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("reverbWidth", "Width", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 1.0f));
+
+    // --- Multiband Compressor ---
+    params.push_back(std::make_unique<juce::AudioParameterBool>("compressorOn", "Compressor On", false));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("compressorLowThresh", "Lo Thresh", juce::NormalisableRange<float>(-60.0f, 0.0f, 0.1f), -20.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("compressorMidThresh", "Mid Thresh", juce::NormalisableRange<float>(-60.0f, 0.0f, 0.1f), -20.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("compressorHighThresh", "Hi Thresh", juce::NormalisableRange<float>(-60.0f, 0.0f, 0.1f), -20.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("compressorRatio", "Ratio", juce::NormalisableRange<float>(1.0f, 20.0f, 0.1f), 4.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("compressorAttack", "Attack (ms)", juce::NormalisableRange<float>(1.0f, 200.0f, 1.0f, 0.4f), 10.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("compressorRelease", "Release (ms)", juce::NormalisableRange<float>(10.0f, 1000.0f, 1.0f, 0.4f), 100.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("compressorMakeup", "Makeup (dB)", juce::NormalisableRange<float>(0.0f, 24.0f, 0.1f), 0.0f));
+
+    // --- Wah Wah ---
+    params.push_back(std::make_unique<juce::AudioParameterBool>("wahOn", "Wah On", false));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("wahRate", "Wah Rate", juce::NormalisableRange<float>(0.1f, 10.0f, 0.01f), 2.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("wahDepth", "Wah Depth", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.8f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("wahFreq", "Wah Freq", juce::NormalisableRange<float>(300.0f, 3000.0f, 1.0f), 1500.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("wahResonance", "Wah Q", juce::NormalisableRange<float>(0.5f, 10.0f, 0.1f), 4.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("wahMix", "Wah Mix", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 1.0f));
+
+    // --- Fuzz ---
+    params.push_back(std::make_unique<juce::AudioParameterBool>("fuzzOn", "Fuzz On", false));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("fuzzDrive", "Fuzz Drive", juce::NormalisableRange<float>(1.0f, 100.0f, 0.1f, 0.3f), 20.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("fuzzTone", "Fuzz Tone", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("fuzzLevel", "Fuzz Level", juce::NormalisableRange<float>(-20.0f, 20.0f, 0.1f), 0.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("fuzzMix", "Fuzz Mix", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 1.0f));
 
     return { params.begin(), params.end() };
 }
@@ -184,6 +231,34 @@ void MultiEffectProcessor::updateParameters()
     reverbParams.width = reverbWidth->get();
     reverb.setParameters(reverbParams);
     effectChain.setBypassed<ReverbIndex>(!reverbOn->get());
+
+    // --- Multiband Compressor ---
+    auto& comp = effectChain.get<CompressorIndex>();
+    comp.setLowThreshold(compressorLowThresh->get());
+    comp.setMidThreshold(compressorMidThresh->get());
+    comp.setHighThreshold(compressorHighThresh->get());
+    comp.setRatio(compressorRatio->get());
+    comp.setAttack(compressorAttack->get());
+    comp.setRelease(compressorRelease->get());
+    comp.setMakeupGain(compressorMakeup->get());
+    effectChain.setBypassed<CompressorIndex>(!compressorOn->get());
+
+    // --- Wah Wah ---
+    auto& wah = effectChain.get<WahIndex>();
+    wah.setRate(wahRate->get());
+    wah.setDepth(wahDepth->get());
+    wah.setCenterFreq(wahFreq->get());
+    wah.setResonance(wahResonance->get());
+    wah.setMix(wahMix->get());
+    effectChain.setBypassed<WahIndex>(!wahOn->get());
+
+    // --- Fuzz ---
+    auto& fuzzProc = effectChain.get<FuzzIndex>();
+    fuzzProc.setDrive(fuzzDrive->get());
+    fuzzProc.setTone(fuzzTone->get());
+    fuzzProc.setLevel(fuzzLevel->get());
+    fuzzProc.setMix(fuzzMix->get());
+    effectChain.setBypassed<FuzzIndex>(!fuzzOn->get());
 
 }
 

@@ -153,6 +153,282 @@ private:
 };
 
 //==============================================================================
+// 3-Band Multiband Compressor DSP class
+class MultibandCompressor
+{
+public:
+    using StereoFilter = juce::dsp::ProcessorDuplicator<
+        juce::dsp::IIR::Filter<float>,
+        juce::dsp::IIR::Coefficients<float>>;
+
+    void prepare(const juce::dsp::ProcessSpec& spec)
+    {
+        sampleRate = spec.sampleRate;
+
+        lowLP.prepare(spec);
+        midHP.prepare(spec);
+        midLP.prepare(spec);
+        highHP.prepare(spec);
+
+        lowComp.prepare(spec);
+        midComp.prepare(spec);
+        highComp.prepare(spec);
+
+        makeupGain.prepare(spec);
+        makeupGain.setRampDurationSeconds(0.01);
+
+        int maxSamples = static_cast<int>(spec.maximumBlockSize);
+        int numCh      = static_cast<int>(spec.numChannels);
+        lowBuf.setSize(numCh, maxSamples);
+        midBuf.setSize(numCh, maxSamples);
+        highBuf.setSize(numCh, maxSamples);
+
+        updateFilters();
+    }
+
+    template <typename ProcessContext>
+    void process(const ProcessContext& context)
+    {
+        if (context.isBypassed) return;
+
+        const auto& inBlock = context.getInputBlock();
+        auto& outBlock      = context.getOutputBlock();
+        const int numSamples  = static_cast<int>(inBlock.getNumSamples());
+        const int numChannels = static_cast<int>(inBlock.getNumChannels());
+
+        // Copy input into the three band buffers
+        for (int ch = 0; ch < numChannels; ++ch)
+        {
+            lowBuf.copyFrom(ch, 0, inBlock.getChannelPointer(ch), numSamples);
+            midBuf.copyFrom(ch, 0, inBlock.getChannelPointer(ch), numSamples);
+            highBuf.copyFrom(ch, 0, inBlock.getChannelPointer(ch), numSamples);
+        }
+
+        juce::dsp::AudioBlock<float> lowBlock(lowBuf.getArrayOfWritePointers(),
+                                               static_cast<size_t>(numChannels),
+                                               static_cast<size_t>(numSamples));
+        juce::dsp::AudioBlock<float> midBlock(midBuf.getArrayOfWritePointers(),
+                                               static_cast<size_t>(numChannels),
+                                               static_cast<size_t>(numSamples));
+        juce::dsp::AudioBlock<float> highBlock(highBuf.getArrayOfWritePointers(),
+                                                static_cast<size_t>(numChannels),
+                                                static_cast<size_t>(numSamples));
+
+        juce::dsp::ProcessContextReplacing<float> lowCtx(lowBlock);
+        juce::dsp::ProcessContextReplacing<float> midCtx(midBlock);
+        juce::dsp::ProcessContextReplacing<float> highCtx(highBlock);
+
+        // Crossover filtering
+        lowLP.process(lowCtx);
+        midHP.process(midCtx);
+        midLP.process(midCtx);
+        highHP.process(highCtx);
+
+        // Compression per band
+        lowComp.process(lowCtx);
+        midComp.process(midCtx);
+        highComp.process(highCtx);
+
+        // Sum bands into output
+        for (int ch = 0; ch < numChannels; ++ch)
+        {
+            const float* low  = lowBuf.getReadPointer(ch);
+            const float* mid  = midBuf.getReadPointer(ch);
+            const float* high = highBuf.getReadPointer(ch);
+            float* out        = outBlock.getChannelPointer(ch);
+            for (int i = 0; i < numSamples; ++i)
+                out[i] = low[i] + mid[i] + high[i];
+        }
+
+        // Makeup gain
+        juce::dsp::ProcessContextReplacing<float> outCtx(outBlock);
+        makeupGain.process(outCtx);
+    }
+
+    void reset()
+    {
+        lowLP.reset();  midHP.reset();  midLP.reset();  highHP.reset();
+        lowComp.reset(); midComp.reset(); highComp.reset();
+        makeupGain.reset();
+    }
+
+    void setLowThreshold(float dB)  { lowComp.setThreshold(dB); }
+    void setMidThreshold(float dB)  { midComp.setThreshold(dB); }
+    void setHighThreshold(float dB) { highComp.setThreshold(dB); }
+    void setRatio(float r)          { lowComp.setRatio(r);  midComp.setRatio(r);  highComp.setRatio(r); }
+    void setAttack(float ms)        { lowComp.setAttack(ms); midComp.setAttack(ms); highComp.setAttack(ms); }
+    void setRelease(float ms)       { lowComp.setRelease(ms); midComp.setRelease(ms); highComp.setRelease(ms); }
+    void setMakeupGain(float dB)    { makeupGain.setGainDecibels(dB); }
+
+private:
+    void updateFilters()
+    {
+        *lowLP.state  = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate, 300.0f);
+        *midHP.state  = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 300.0f);
+        *midLP.state  = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate, 3000.0f);
+        *highHP.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 3000.0f);
+    }
+
+    double sampleRate = 44100.0;
+
+    StereoFilter lowLP, midHP, midLP, highHP;
+    juce::dsp::Compressor<float> lowComp, midComp, highComp;
+    juce::dsp::Gain<float> makeupGain;
+
+    juce::AudioBuffer<float> lowBuf, midBuf, highBuf;
+};
+
+//==============================================================================
+// Wah-Wah (auto-wah) DSP class
+class WahWah
+{
+public:
+    WahWah() { lfo.initialise([](float x) { return std::sin(x); }, 128); }
+
+    void prepare(const juce::dsp::ProcessSpec& spec)
+    {
+        sampleRate = spec.sampleRate;
+        lfo.prepare(spec);
+        for (auto& f : filters)
+        {
+            f.prepare(spec);
+            f.coefficients = juce::dsp::IIR::Coefficients<float>::makeBandPass(
+                sampleRate, centerFreq, resonance);
+        }
+    }
+
+    template <typename ProcessContext>
+    void process(const ProcessContext& context)
+    {
+        if (context.isBypassed) return;
+
+        lfo.setFrequency(rate);
+        const auto& inBlock  = context.getInputBlock();
+        auto& outBlock       = context.getOutputBlock();
+        const int numSamples  = static_cast<int>(inBlock.getNumSamples());
+        const int numChannels = static_cast<int>(inBlock.getNumChannels());
+
+        for (int s = 0; s < numSamples; ++s)
+        {
+            const float lfoVal = lfo.processSample(0.0f); // -1 to +1
+            const float freq   = juce::jlimit(200.0f, 4000.0f,
+                                              centerFreq + lfoVal * depth * sweepRange);
+            const auto newCoeffs = juce::dsp::IIR::Coefficients<float>::makeBandPass(
+                sampleRate, freq, resonance);
+            for (auto& f : filters)
+                f.coefficients = newCoeffs;
+
+            for (int ch = 0; ch < numChannels; ++ch)
+            {
+                const float in       = inBlock.getSample(ch, s);
+                const float filtered = filters[ch % 2].processSample(in);
+                outBlock.setSample(ch, s, (1.0f - mix) * in + mix * filtered);
+            }
+        }
+    }
+
+    void reset()
+    {
+        lfo.reset();
+        for (auto& f : filters) f.reset();
+    }
+
+    void setRate(float newRate)       { rate = newRate; }
+    void setDepth(float newDepth)     { depth = newDepth; }
+    void setCenterFreq(float freq)    { centerFreq = freq; }
+    void setResonance(float q)        { resonance = juce::jlimit(0.1f, 20.0f, q); }
+    void setMix(float newMix)         { mix = newMix; }
+
+private:
+    static constexpr float sweepRange = 1500.0f;
+
+    juce::dsp::Oscillator<float> lfo;
+    std::array<juce::dsp::IIR::Filter<float>, 2> filters;
+
+    double sampleRate = 44100.0;
+    float rate        = 2.0f;
+    float depth       = 0.8f;
+    float centerFreq  = 1500.0f;
+    float resonance   = 4.0f;
+    float mix         = 1.0f;
+};
+
+//==============================================================================
+// Fuzz DSP class
+class Fuzz
+{
+public:
+    using StereoFilter = juce::dsp::ProcessorDuplicator<
+        juce::dsp::IIR::Filter<float>,
+        juce::dsp::IIR::Coefficients<float>>;
+
+    void prepare(const juce::dsp::ProcessSpec& spec)
+    {
+        sampleRate = spec.sampleRate;
+        toneFilter.prepare(spec);
+        outputGain.prepare(spec);
+        outputGain.setRampDurationSeconds(0.01);
+        updateToneFilter();
+    }
+
+    template <typename ProcessContext>
+    void process(const ProcessContext& context)
+    {
+        if (context.isBypassed) return;
+
+        const auto& inBlock  = context.getInputBlock();
+        auto& outBlock       = context.getOutputBlock();
+        const int numSamples  = static_cast<int>(inBlock.getNumSamples());
+        const int numChannels = static_cast<int>(inBlock.getNumChannels());
+
+        // Apply drive + hard clip + wet/dry mix
+        for (int ch = 0; ch < numChannels; ++ch)
+        {
+            const float* in = inBlock.getChannelPointer(ch);
+            float* out      = outBlock.getChannelPointer(ch);
+            for (int s = 0; s < numSamples; ++s)
+            {
+                const float driven = in[s] * drive;
+                const float fuzzed = juce::jlimit(-1.0f, 1.0f, driven);
+                out[s] = (1.0f - mix) * in[s] + mix * fuzzed;
+            }
+        }
+
+        // Tone filter + output level applied to the output block
+        juce::dsp::ProcessContextReplacing<float> outCtx(outBlock);
+        toneFilter.process(outCtx);
+        outputGain.process(outCtx);
+    }
+
+    void reset()
+    {
+        toneFilter.reset();
+        outputGain.reset();
+    }
+
+    void setDrive(float newDrive)   { drive = juce::jlimit(1.0f, 100.0f, newDrive); }
+    void setTone(float newTone)     { tone = juce::jlimit(0.0f, 1.0f, newTone); updateToneFilter(); }
+    void setLevel(float newLevelDb) { outputGain.setGainDecibels(newLevelDb); }
+    void setMix(float newMix)       { mix = newMix; }
+
+private:
+    void updateToneFilter()
+    {
+        if (sampleRate <= 0.0) return;
+        const float cutoff = 500.0f + tone * 8000.0f;
+        *toneFilter.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate, cutoff);
+    }
+
+    double sampleRate = 44100.0;
+    float drive = 20.0f;
+    float tone  = 0.5f;
+    float mix   = 1.0f;
+
+    StereoFilter toneFilter;
+    juce::dsp::Gain<float> outputGain;
+};
+
+//==============================================================================
 class MultiEffectProcessor : public juce::AudioProcessor
 {
 public:
@@ -190,20 +466,25 @@ private:
     enum ChainPositions
     {
         BitcrusherIndex,
+        FuzzIndex,
+        CompressorIndex,
         RingModIndex,
+        WahIndex,
         PhaserIndex,
         ChorusIndex,
         TremoloIndex,
         DelayIndex,
         ReverbIndex,
-        // Add more if needed
         NumEffects
     };
 
     // Use ProcessorChain for easier management
     using EffectChain = juce::dsp::ProcessorChain<
         Bitcrusher,
+        Fuzz,
+        MultibandCompressor,
         RingModulator,
+        WahWah,
         juce::dsp::Phaser<float>,
         juce::dsp::Chorus<float>,
         Tremolo,
@@ -247,6 +528,28 @@ private:
     juce::AudioParameterFloat* reverbWetLevel = nullptr;
     juce::AudioParameterFloat* reverbDryLevel = nullptr;
     juce::AudioParameterFloat* reverbWidth = nullptr;
+
+    juce::AudioParameterBool*  compressorOn = nullptr;
+    juce::AudioParameterFloat* compressorLowThresh = nullptr;
+    juce::AudioParameterFloat* compressorMidThresh = nullptr;
+    juce::AudioParameterFloat* compressorHighThresh = nullptr;
+    juce::AudioParameterFloat* compressorRatio = nullptr;
+    juce::AudioParameterFloat* compressorAttack = nullptr;
+    juce::AudioParameterFloat* compressorRelease = nullptr;
+    juce::AudioParameterFloat* compressorMakeup = nullptr;
+
+    juce::AudioParameterBool*  wahOn = nullptr;
+    juce::AudioParameterFloat* wahRate = nullptr;
+    juce::AudioParameterFloat* wahDepth = nullptr;
+    juce::AudioParameterFloat* wahFreq = nullptr;
+    juce::AudioParameterFloat* wahResonance = nullptr;
+    juce::AudioParameterFloat* wahMix = nullptr;
+
+    juce::AudioParameterBool*  fuzzOn = nullptr;
+    juce::AudioParameterFloat* fuzzDrive = nullptr;
+    juce::AudioParameterFloat* fuzzTone = nullptr;
+    juce::AudioParameterFloat* fuzzLevel = nullptr;
+    juce::AudioParameterFloat* fuzzMix = nullptr;
 
     void updateParameters(); // Function to update DSP based on APVTS
 

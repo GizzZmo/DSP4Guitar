@@ -113,6 +113,47 @@ private:
     juce::Label reverbDryLevelLabel { {}, "Dry" };
     juce::Label reverbWidthLabel { {}, "Width" };
 
+    // Multiband Compressor
+    juce::ToggleButton compressorOnButton { "On" };
+    juce::Slider compressorLowThreshSlider;
+    juce::Slider compressorMidThreshSlider;
+    juce::Slider compressorHighThreshSlider;
+    juce::Slider compressorRatioSlider;
+    juce::Slider compressorAttackSlider;
+    juce::Slider compressorReleaseSlider;
+    juce::Slider compressorMakeupSlider;
+    juce::Label compressorLowThreshLabel { {}, "Lo Thr" };
+    juce::Label compressorMidThreshLabel { {}, "Mid Thr" };
+    juce::Label compressorHighThreshLabel { {}, "Hi Thr" };
+    juce::Label compressorRatioLabel { {}, "Ratio" };
+    juce::Label compressorAttackLabel { {}, "Atk" };
+    juce::Label compressorReleaseLabel { {}, "Rel" };
+    juce::Label compressorMakeupLabel { {}, "Makeup" };
+
+    // Wah Wah
+    juce::ToggleButton wahOnButton { "On" };
+    juce::Slider wahRateSlider;
+    juce::Slider wahDepthSlider;
+    juce::Slider wahFreqSlider;
+    juce::Slider wahResonanceSlider;
+    juce::Slider wahMixSlider;
+    juce::Label wahRateLabel { {}, "Rate" };
+    juce::Label wahDepthLabel { {}, "Depth" };
+    juce::Label wahFreqLabel { {}, "Freq" };
+    juce::Label wahResonanceLabel { {}, "Q" };
+    juce::Label wahMixLabel { {}, "Mix" };
+
+    // Fuzz
+    juce::ToggleButton fuzzOnButton { "On" };
+    juce::Slider fuzzDriveSlider;
+    juce::Slider fuzzToneSlider;
+    juce::Slider fuzzLevelSlider;
+    juce::Slider fuzzMixSlider;
+    juce::Label fuzzDriveLabel { {}, "Drive" };
+    juce::Label fuzzToneLabel { {}, "Tone" };
+    juce::Label fuzzLevelLabel { {}, "Level" };
+    juce::Label fuzzMixLabel { {}, "Mix" };
+
     // ------------------------------------------------------------------
     // Parameter Attachments
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
