@@ -36,11 +36,19 @@ jobs:
           libxrender-dev \
           libglu1-mesa-dev \
           mesa-common-dev
-          
+
+    - name: Cache JUCE
+      id: cache-juce
+      uses: actions/cache@v4
+      with:
+        path: JUCE
+        key: juce-${{ runner.os }}-7.0.9
+
     - name: Download JUCE
+      if: steps.cache-juce.outputs.cache-hit != 'true'
       run: |
         git clone --depth 1 --branch 7.0.9 https://github.com/juce-framework/JUCE.git
-        
+
     - name: Configure CMake
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release
       
@@ -75,36 +83,22 @@ jobs:
         cd release
         Compress-Archive -Path DSP4Guitar-Windows -DestinationPath DSP4Guitar-Windows.zip
       shell: pwsh
-        
-    - name: Upload Release Assets (Linux)
+
+    - name: Upload Release Asset (Linux)
       if: runner.os == 'Linux' && github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./release/DSP4Guitar-Linux.tar.gz
-        asset_name: DSP4Guitar-Linux.tar.gz
-        asset_content_type: application/gzip
-        
-    - name: Upload Release Assets (macOS)
+        files: ./release/DSP4Guitar-Linux.tar.gz
+
+    - name: Upload Release Asset (macOS)
       if: runner.os == 'macOS' && github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./release/DSP4Guitar-macOS.zip
-        asset_name: DSP4Guitar-macOS.zip
-        asset_content_type: application/zip
-        
-    - name: Upload Release Assets (Windows)
+        files: ./release/DSP4Guitar-macOS.zip
+
+    - name: Upload Release Asset (Windows)
       if: runner.os == 'Windows' && github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./release/DSP4Guitar-Windows.zip
-        asset_name: DSP4Guitar-Windows.zip
-        asset_content_type: application/zip
+        files: ./release/DSP4Guitar-Windows.zip
+

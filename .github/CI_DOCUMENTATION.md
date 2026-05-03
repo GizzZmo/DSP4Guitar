@@ -16,11 +16,12 @@ DSP4Guitar uses GitHub Actions for continuous integration and deployment. The sy
 **Jobs:**
 
 #### Build Job
-- **Platforms**: Ubuntu, macOS, Windows
+- **Platforms**: Ubuntu, macOS (Apple Silicon via `macos-14`), Windows
 - **Actions**:
   - Checks out code with submodules
   - Sets up platform-specific dependencies (Linux: ALSA, JACK, X11, etc.)
-  - Caches JUCE framework for faster builds
+  - Caches JUCE framework (`actions/cache@v4`) for faster builds
+  - Downloads JUCE 7.0.9 on cache miss
   - Configures CMake with Release settings
   - Builds VST3 plugin (and AU on macOS)
   - Uploads build artifacts
@@ -31,14 +32,19 @@ DSP4Guitar uses GitHub Actions for continuous integration and deployment. The sy
 - `DSP4Guitar-Windows-VST3`: Windows VST3 plugin
 
 #### Code Quality Job
-- Checks for trailing whitespace
-- Verifies basic formatting
-- Scans for debug print statements
+- Checks for trailing whitespace in `.cpp`/`.h`/`.hpp` files
+- Checks for tabs in source files
+- Scans for debug print statements (`printf`, `cout`)
+- Warns if `#include <iostream>` is found (prefer JUCE's `DBG()` macro)
 - Runs on Ubuntu only
 
 #### Documentation Job
-- Verifies README.md exists
-- Checks for LICENSE file
+- Verifies `README.md` exists
+- Checks for `LICENSE` file
+- Checks for `CONTRIBUTING.md`
+- Checks for `Documentation/effects-reference.md`
+- Verifies `CMakeLists.txt` exists
+- Checks that all source files referenced in `CMakeLists.txt` are present on disk
 - Runs on Ubuntu only
 
 ### 2. Release Workflow (`.github/workflows/release.yml`)
@@ -48,13 +54,17 @@ DSP4Guitar uses GitHub Actions for continuous integration and deployment. The sy
 - Manual workflow dispatch
 
 **Actions:**
-- Builds optimized release versions for all platforms
+- Checks out code with submodules
+- Sets up platform-specific dependencies (Linux)
+- Caches JUCE (`actions/cache@v4`) — same cache key as CI, so builds after CI runs benefit from warm cache
+- Downloads JUCE 7.0.9 on cache miss
+- Builds optimised release versions for all platforms
 - Packages plugins with README and LICENSE
 - Creates platform-specific archives:
   - Linux: `.tar.gz`
   - macOS: `.zip`
   - Windows: `.zip`
-- Attaches archives to GitHub release
+- Attaches archives to the GitHub release using `softprops/action-gh-release@v2`
 
 ## Build System
 
@@ -81,14 +91,13 @@ The project uses CMake 3.15+ with the following configuration:
   - `juce_gui_extra`
 
 ### Source Files Included
-- MultiEffectProcessor.cpp/h
-- PluginEditor.h
-- Delay.cpp/h
-- Distortion.cpp/h
-- Modulation.cpp/h
-- PresetManager.cpp/h
-- StereoWidening.cpp/h
-- DSP4GuitarApp.h
+- MultiEffectProcessor.cpp/h — plugin entry point and all DSP classes
+- PluginEditor.cpp/h — GUI editor
+- CyberpunkLookAndFeel.h — custom JUCE LookAndFeel
+- Delay.cpp/h, Distortion.cpp/h, Modulation.cpp/h — legacy effect helpers
+- PresetManager.cpp/h — preset save/load
+- StereoWidening.cpp/h — stereo widening utility
+- DSP4GuitarApp.h — standalone app entry point
 
 ## Local Development
 
@@ -177,8 +186,12 @@ The README includes a CI status badge that shows the current build status:
 - Verify paths in workflow match actual build output
 
 **Code quality checks fail:**
-- Remove trailing whitespace from source files
+- Remove trailing whitespace: `sed -i 's/[[:space:]]*$//' <file>`
 - Address any warnings in the CI logs
+
+**Release asset upload fails:**
+- Ensure `GITHUB_TOKEN` has write access to releases (default for `release` events)
+- Check that the archive was created successfully in the Package step
 
 ## Extending the CI
 
@@ -219,11 +232,11 @@ coverage:
 
 ## Best Practices
 
-1. **Always test locally** before pushing
-2. **Keep workflows fast** - use caching, fail-fast strategy
-3. **Monitor artifact sizes** - keep plugins reasonably sized
-4. **Review CI logs** for warnings even if build succeeds
-5. **Update JUCE version** carefully - test thoroughly after updates
+1. **Always test locally** before pushing — run `./scripts/pre-commit-check.sh`
+2. **Keep workflows fast** — JUCE caching is already configured; avoid removing it
+3. **Monitor artifact sizes** — keep plugins reasonably sized
+4. **Review CI logs** for warnings even if the build succeeds
+5. **Update JUCE version** carefully — update the version string in CMakeLists.txt, the `git clone` commands in both workflows, and the `actions/cache` key in both workflows
 
 ## Support
 
@@ -235,4 +248,5 @@ For issues with the CI system:
 
 ---
 
-Last updated: 2024
+Last updated: 2025
+

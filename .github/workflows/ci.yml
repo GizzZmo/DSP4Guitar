@@ -42,7 +42,7 @@ jobs:
           
     - name: Cache JUCE
       id: cache-juce
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: JUCE
         key: juce-${{ runner.os }}-7.0.9
@@ -113,9 +113,13 @@ jobs:
     - name: Check for basic C++ issues
       run: |
         echo "Running basic code quality checks..."
-        # Check for common issues
+        # Check for debug print statements
         if grep -r --include='*.cpp' --include='*.h' 'printf\|cout' .; then
           echo "Warning: Debug print statements found (printf/cout)"
+        fi
+        # Check for iostream includes (prefer JUCE logging)
+        if grep -rF --include='*.cpp' --include='*.h' '#include <iostream>' .; then
+          echo "Warning: #include <iostream> found — prefer JUCE's DBG() macro"
         fi
         echo "Code quality check completed"
       continue-on-error: true
@@ -143,3 +147,38 @@ jobs:
         else
           echo "LICENSE file found"
         fi
+
+    - name: Check for CONTRIBUTING guide
+      run: |
+        if [ ! -f "CONTRIBUTING.md" ]; then
+          echo "Warning: CONTRIBUTING.md not found"
+        else
+          echo "CONTRIBUTING.md found"
+        fi
+
+    - name: Check for effects reference
+      run: |
+        if [ ! -f "Documentation/effects-reference.md" ]; then
+          echo "Warning: Documentation/effects-reference.md not found"
+        else
+          echo "Documentation/effects-reference.md found"
+        fi
+
+    - name: Verify CMakeLists.txt
+      run: |
+        if [ ! -f "CMakeLists.txt" ]; then
+          echo "Error: CMakeLists.txt not found"
+          exit 1
+        fi
+        echo "CMakeLists.txt found"
+        # Check that required source files exist
+        echo "Checking source files referenced in CMakeLists.txt..."
+        for src in MultiEffectProcessor.cpp MultiEffectProcessor.h PluginEditor.cpp PluginEditor.h \
+                   Delay.cpp Delay.h Distortion.cpp Distortion.h \
+                   Modulation.cpp Modulation.h PresetManager.cpp PresetManager.h \
+                   StereoWidening.cpp StereoWidening.h; do
+          if [ ! -f "$src" ]; then
+            echo "Warning: $src listed in CMakeLists.txt but not found"
+          fi
+        done
+        echo "Source file check completed"
