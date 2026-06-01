@@ -154,6 +154,17 @@ private:
     juce::Label fuzzLevelLabel { {}, "Level" };
     juce::Label fuzzMixLabel { {}, "Mix" };
 
+    // Theme Builder
+    juce::ComboBox themePresetCombo;
+    juce::Label themePresetLabel { {}, "Preset" };
+    juce::Slider themeHueSlider;
+    juce::Slider themeSaturationSlider;
+    juce::Slider themeBrightnessSlider;
+    juce::Label themeHueLabel { {}, "Hue" };
+    juce::Label themeSaturationLabel { {}, "Sat" };
+    juce::Label themeBrightnessLabel { {}, "Bright" };
+    bool isUpdatingThemeControls = false;
+
     // ------------------------------------------------------------------
     // Parameter Attachments
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
@@ -176,6 +187,10 @@ private:
 
     /** Returns the bounds rectangle for effect panel at column col, row row. */
     juce::Rectangle<int> panelBounds (int col, int row) const;
+
+    void applyThemePreset (int presetId);
+    void applyCustomThemeFromControls ();
+    void syncThemeControlsToCurrentTheme ();
 
     // Tooltip window – shows parameter info on hover
     juce::TooltipWindow tooltipWindow { this, 600 };
