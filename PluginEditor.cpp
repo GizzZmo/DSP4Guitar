@@ -31,12 +31,22 @@ static constexpr float kMinThemeSaturation = 0.2f;
 static constexpr float kMinThemeBrightness = 0.25f;
 static constexpr float kSecondarySatScale = 0.9f;
 static constexpr float kSecondaryBrightScale = 0.7f;
+static constexpr float kSecondaryMinSaturation = 0.2f;
+static constexpr float kSecondaryMinBrightness = 0.12f;
 static constexpr float kBackgroundSatScale = 0.45f;
 static constexpr float kBackgroundBrightScale = 0.12f;
+static constexpr float kBackgroundMaxSaturation = 0.8f;
+static constexpr float kBackgroundMinBrightness = 0.03f;
+static constexpr float kBackgroundMaxBrightness = 0.5f;
 static constexpr float kSurfaceSatScale = 0.35f;
 static constexpr float kSurfaceBrightScale = 0.07f;
+static constexpr float kSurfaceMaxSaturation = 0.65f;
+static constexpr float kSurfaceMinBrightness = 0.02f;
+static constexpr float kSurfaceMaxBrightness = 0.4f;
 static constexpr float kAccentHueOffset = 0.18f;
 static constexpr float kAccentSatScale = 0.8f;
+static constexpr float kAccentMinSaturation = 0.3f;
+static constexpr float kAccentMinBrightness = 0.2f;
 static constexpr float kCyanPresetHue = 0.50f;
 static constexpr float kMagentaPresetHue = 0.83f;
 static constexpr float kAmberPresetHue = 0.12f;
@@ -58,10 +68,22 @@ static CyberpunkLookAndFeel::ThemePalette makeThemeFromHSB(float hue, float satu
 
     CyberpunkLookAndFeel::ThemePalette palette;
     palette.primary   = juce::Colour::fromHSV(h, s, b, 1.0f);
-    palette.secondary = juce::Colour::fromHSV(h, juce::jlimit(0.2f, 1.0f, s * kSecondarySatScale), juce::jlimit(0.12f, 1.0f, b * kSecondaryBrightScale), 1.0f);
-    palette.background = juce::Colour::fromHSV(h, juce::jlimit(0.0f, 0.8f, s * kBackgroundSatScale), juce::jlimit(0.03f, 0.5f, b * kBackgroundBrightScale), 1.0f);
-    palette.surface   = juce::Colour::fromHSV(h, juce::jlimit(0.0f, 0.65f, s * kSurfaceSatScale), juce::jlimit(0.02f, 0.4f, b * kSurfaceBrightScale), 1.0f);
-    palette.accent    = juce::Colour::fromHSV(std::fmod(h + kAccentHueOffset, 1.0f), juce::jlimit(0.3f, 1.0f, s * kAccentSatScale), juce::jlimit(0.2f, 1.0f, b), 1.0f);
+    palette.secondary = juce::Colour::fromHSV(h,
+                                               juce::jlimit(kSecondaryMinSaturation, 1.0f, s * kSecondarySatScale),
+                                               juce::jlimit(kSecondaryMinBrightness, 1.0f, b * kSecondaryBrightScale),
+                                               1.0f);
+    palette.background = juce::Colour::fromHSV(h,
+                                                juce::jlimit(0.0f, kBackgroundMaxSaturation, s * kBackgroundSatScale),
+                                                juce::jlimit(kBackgroundMinBrightness, kBackgroundMaxBrightness, b * kBackgroundBrightScale),
+                                                1.0f);
+    palette.surface   = juce::Colour::fromHSV(h,
+                                               juce::jlimit(0.0f, kSurfaceMaxSaturation, s * kSurfaceSatScale),
+                                               juce::jlimit(kSurfaceMinBrightness, kSurfaceMaxBrightness, b * kSurfaceBrightScale),
+                                               1.0f);
+    palette.accent    = juce::Colour::fromHSV(std::fmod(h + kAccentHueOffset, 1.0f),
+                                               juce::jlimit(kAccentMinSaturation, 1.0f, s * kAccentSatScale),
+                                               juce::jlimit(kAccentMinBrightness, 1.0f, b),
+                                               1.0f);
     palette.inactive  = juce::Colour(0xFF444444).interpolatedWith(palette.primary, 0.22f);
     return palette;
 }
