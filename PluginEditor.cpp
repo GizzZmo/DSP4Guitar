@@ -29,6 +29,26 @@ static float randFloat(float lo, float hi)
 
 static constexpr float kMinThemeSaturation = 0.2f;
 static constexpr float kMinThemeBrightness = 0.25f;
+static constexpr float kSecondarySatScale = 0.9f;
+static constexpr float kSecondaryBrightScale = 0.7f;
+static constexpr float kBackgroundSatScale = 0.45f;
+static constexpr float kBackgroundBrightScale = 0.12f;
+static constexpr float kSurfaceSatScale = 0.35f;
+static constexpr float kSurfaceBrightScale = 0.07f;
+static constexpr float kAccentHueOffset = 0.18f;
+static constexpr float kAccentSatScale = 0.8f;
+static constexpr float kCyanPresetHue = 0.50f;
+static constexpr float kMagentaPresetHue = 0.83f;
+static constexpr float kAmberPresetHue = 0.12f;
+
+enum ThemePresetId
+{
+    themePresetMatrix = 1,
+    themePresetCyan = 2,
+    themePresetMagenta = 3,
+    themePresetAmber = 4,
+    themePresetCustom = 5
+};
 
 static CyberpunkLookAndFeel::ThemePalette makeThemeFromHSB(float hue, float saturation, float brightness)
 {
@@ -38,10 +58,10 @@ static CyberpunkLookAndFeel::ThemePalette makeThemeFromHSB(float hue, float satu
 
     CyberpunkLookAndFeel::ThemePalette palette;
     palette.primary   = juce::Colour::fromHSV(h, s, b, 1.0f);
-    palette.secondary = juce::Colour::fromHSV(h, juce::jlimit(0.2f, 1.0f, s * 0.9f), juce::jlimit(0.12f, 1.0f, b * 0.7f), 1.0f);
-    palette.background = juce::Colour::fromHSV(h, juce::jlimit(0.0f, 0.8f, s * 0.45f), juce::jlimit(0.03f, 0.5f, b * 0.12f), 1.0f);
-    palette.surface   = juce::Colour::fromHSV(h, juce::jlimit(0.0f, 0.65f, s * 0.35f), juce::jlimit(0.02f, 0.4f, b * 0.07f), 1.0f);
-    palette.accent    = juce::Colour::fromHSV(std::fmod(h + 0.18f, 1.0f), juce::jlimit(0.3f, 1.0f, s * 0.8f), juce::jlimit(0.2f, 1.0f, b), 1.0f);
+    palette.secondary = juce::Colour::fromHSV(h, juce::jlimit(0.2f, 1.0f, s * kSecondarySatScale), juce::jlimit(0.12f, 1.0f, b * kSecondaryBrightScale), 1.0f);
+    palette.background = juce::Colour::fromHSV(h, juce::jlimit(0.0f, 0.8f, s * kBackgroundSatScale), juce::jlimit(0.03f, 0.5f, b * kBackgroundBrightScale), 1.0f);
+    palette.surface   = juce::Colour::fromHSV(h, juce::jlimit(0.0f, 0.65f, s * kSurfaceSatScale), juce::jlimit(0.02f, 0.4f, b * kSurfaceBrightScale), 1.0f);
+    palette.accent    = juce::Colour::fromHSV(std::fmod(h + kAccentHueOffset, 1.0f), juce::jlimit(0.3f, 1.0f, s * kAccentSatScale), juce::jlimit(0.2f, 1.0f, b), 1.0f);
     palette.inactive  = juce::Colour(0xFF444444).interpolatedWith(palette.primary, 0.22f);
     return palette;
 }
@@ -83,9 +103,9 @@ void MultiEffectProcessorEditor::applyThemePreset(int presetId)
 
     switch (presetId)
     {
-        case 2: palette = makeThemeFromHSB(0.50f, 1.00f, 1.00f); break; // Cyan Pulse
-        case 3: palette = makeThemeFromHSB(0.83f, 0.95f, 1.00f); break; // Magenta Glow
-        case 4: palette = makeThemeFromHSB(0.12f, 0.90f, 1.00f); break; // Amber Terminal
+        case themePresetCyan: palette = makeThemeFromHSB(kCyanPresetHue, 1.00f, 1.00f); break;
+        case themePresetMagenta: palette = makeThemeFromHSB(kMagentaPresetHue, 0.95f, 1.00f); break;
+        case themePresetAmber: palette = makeThemeFromHSB(kAmberPresetHue, 0.90f, 1.00f); break;
         default: palette = {
             CyberpunkLookAndFeel::matrixGreen,
             CyberpunkLookAndFeel::matrixDarkGreen,
@@ -229,16 +249,16 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     addAndMakeVisible(themePresetLabel);
 
     themePresetCombo.setLookAndFeel(&cyberpunkLF);
-    themePresetCombo.addItem("Matrix Green", 1);
-    themePresetCombo.addItem("Cyan Pulse", 2);
-    themePresetCombo.addItem("Magenta Glow", 3);
-    themePresetCombo.addItem("Amber Terminal", 4);
-    themePresetCombo.addItem("Custom", 5);
+    themePresetCombo.addItem("Matrix Green", themePresetMatrix);
+    themePresetCombo.addItem("Cyan Pulse", themePresetCyan);
+    themePresetCombo.addItem("Magenta Glow", themePresetMagenta);
+    themePresetCombo.addItem("Amber Terminal", themePresetAmber);
+    themePresetCombo.addItem("Custom", themePresetCustom);
     themePresetCombo.onChange = [this]
     {
         if (!isUpdatingThemeControls)
         {
-            if (themePresetCombo.getSelectedId() == 5)
+            if (themePresetCombo.getSelectedId() == themePresetCustom)
                 applyCustomThemeFromControls();
             else
                 applyThemePreset(themePresetCombo.getSelectedId());
@@ -258,7 +278,7 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     {
         if (!isUpdatingThemeControls)
         {
-            themePresetCombo.setSelectedId(5, juce::dontSendNotification);
+            themePresetCombo.setSelectedId(themePresetCustom, juce::dontSendNotification);
             applyCustomThemeFromControls();
         }
     };
@@ -266,7 +286,7 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     {
         if (!isUpdatingThemeControls)
         {
-            themePresetCombo.setSelectedId(5, juce::dontSendNotification);
+            themePresetCombo.setSelectedId(themePresetCustom, juce::dontSendNotification);
             applyCustomThemeFromControls();
         }
     };
@@ -274,7 +294,7 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     {
         if (!isUpdatingThemeControls)
         {
-            themePresetCombo.setSelectedId(5, juce::dontSendNotification);
+            themePresetCombo.setSelectedId(themePresetCustom, juce::dontSendNotification);
             applyCustomThemeFromControls();
         }
     };
@@ -366,8 +386,8 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     attach("fuzzMix",   fuzzMixSlider);
     attachBtn("fuzzOn", fuzzOnButton);
 
-    applyThemePreset(1);
-    themePresetCombo.setSelectedId(1, juce::dontSendNotification);
+    applyThemePreset(themePresetMatrix);
+    themePresetCombo.setSelectedId(themePresetMatrix, juce::dontSendNotification);
 
     setSize(kEditorW, kEditorH);
     startTimerHz(30);
