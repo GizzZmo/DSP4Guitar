@@ -27,11 +27,14 @@ static float randFloat(float lo, float hi)
     return std::uniform_real_distribution<float>(lo, hi)(getRng());
 }
 
+static constexpr float kMinThemeSaturation = 0.2f;
+static constexpr float kMinThemeBrightness = 0.25f;
+
 static CyberpunkLookAndFeel::ThemePalette makeThemeFromHSB(float hue, float saturation, float brightness)
 {
     const float h = juce::jlimit(0.0f, 1.0f, hue);
-    const float s = juce::jlimit(0.0f, 1.0f, saturation);
-    const float b = juce::jlimit(0.15f, 1.0f, brightness);
+    const float s = juce::jlimit(kMinThemeSaturation, 1.0f, saturation);
+    const float b = juce::jlimit(kMinThemeBrightness, 1.0f, brightness);
 
     CyberpunkLookAndFeel::ThemePalette palette;
     palette.primary   = juce::Colour::fromHSV(h, s, b, 1.0f);
@@ -230,10 +233,16 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     themePresetCombo.addItem("Cyan Pulse", 2);
     themePresetCombo.addItem("Magenta Glow", 3);
     themePresetCombo.addItem("Amber Terminal", 4);
+    themePresetCombo.addItem("Custom", 5);
     themePresetCombo.onChange = [this]
     {
         if (!isUpdatingThemeControls)
-            applyThemePreset(themePresetCombo.getSelectedId());
+        {
+            if (themePresetCombo.getSelectedId() == 5)
+                applyCustomThemeFromControls();
+            else
+                applyThemePreset(themePresetCombo.getSelectedId());
+        }
     };
     addAndMakeVisible(themePresetCombo);
 
@@ -242,14 +251,14 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     setupRotarySlider(themeBrightnessSlider, themeBrightnessLabel);
 
     themeHueSlider.setRange(0.0, 1.0, 0.001);
-    themeSaturationSlider.setRange(0.2, 1.0, 0.001);
-    themeBrightnessSlider.setRange(0.25, 1.0, 0.001);
+    themeSaturationSlider.setRange(kMinThemeSaturation, 1.0, 0.001);
+    themeBrightnessSlider.setRange(kMinThemeBrightness, 1.0, 0.001);
 
     themeHueSlider.onValueChange = [this]
     {
         if (!isUpdatingThemeControls)
         {
-            themePresetCombo.setSelectedId(0, juce::dontSendNotification);
+            themePresetCombo.setSelectedId(5, juce::dontSendNotification);
             applyCustomThemeFromControls();
         }
     };
@@ -257,7 +266,7 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     {
         if (!isUpdatingThemeControls)
         {
-            themePresetCombo.setSelectedId(0, juce::dontSendNotification);
+            themePresetCombo.setSelectedId(5, juce::dontSendNotification);
             applyCustomThemeFromControls();
         }
     };
@@ -265,7 +274,7 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     {
         if (!isUpdatingThemeControls)
         {
-            themePresetCombo.setSelectedId(0, juce::dontSendNotification);
+            themePresetCombo.setSelectedId(5, juce::dontSendNotification);
             applyCustomThemeFromControls();
         }
     };
