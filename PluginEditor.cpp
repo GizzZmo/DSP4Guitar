@@ -1,5 +1,6 @@
 #include "PluginEditor.h"
 #include <chrono>
+#include <cmath>
 #include <random>
 
 //==============================================================================
@@ -24,6 +25,67 @@ static int randInt(int lo, int hi)   // inclusive [lo, hi]
 static float randFloat(float lo, float hi)
 {
     return std::uniform_real_distribution<float>(lo, hi)(getRng());
+}
+
+static constexpr float kMinThemeSaturation = 0.2f;
+static constexpr float kMinThemeBrightness = 0.25f;
+static constexpr float kSecondarySatScale = 0.9f;
+static constexpr float kSecondaryBrightScale = 0.7f;
+static constexpr float kSecondaryMinSaturation = 0.2f;
+static constexpr float kSecondaryMinBrightness = 0.12f;
+static constexpr float kBackgroundSatScale = 0.45f;
+static constexpr float kBackgroundBrightScale = 0.12f;
+static constexpr float kBackgroundMaxSaturation = 0.8f;
+static constexpr float kBackgroundMinBrightness = 0.03f;
+static constexpr float kBackgroundMaxBrightness = 0.5f;
+static constexpr float kSurfaceSatScale = 0.35f;
+static constexpr float kSurfaceBrightScale = 0.07f;
+static constexpr float kSurfaceMaxSaturation = 0.65f;
+static constexpr float kSurfaceMinBrightness = 0.02f;
+static constexpr float kSurfaceMaxBrightness = 0.4f;
+static constexpr float kAccentHueOffset = 0.18f;
+static constexpr float kAccentSatScale = 0.8f;
+static constexpr float kAccentMinSaturation = 0.3f;
+static constexpr float kAccentMinBrightness = 0.2f;
+static constexpr float kCyanPresetHue = 0.50f;
+static constexpr float kMagentaPresetHue = 0.83f;
+static constexpr float kAmberPresetHue = 0.12f;
+
+enum ThemePresetId
+{
+    themePresetMatrix = 1,
+    themePresetCyan = 2,
+    themePresetMagenta = 3,
+    themePresetAmber = 4,
+    themePresetCustom = 5
+};
+
+static CyberpunkLookAndFeel::ThemePalette makeThemeFromHSB(float hue, float saturation, float brightness)
+{
+    const float h = juce::jlimit(0.0f, 1.0f, hue);
+    const float s = juce::jlimit(kMinThemeSaturation, 1.0f, saturation);
+    const float b = juce::jlimit(kMinThemeBrightness, 1.0f, brightness);
+
+    CyberpunkLookAndFeel::ThemePalette palette;
+    palette.primary   = juce::Colour::fromHSV(h, s, b, 1.0f);
+    palette.secondary = juce::Colour::fromHSV(h,
+                                               juce::jlimit(kSecondaryMinSaturation, 1.0f, s * kSecondarySatScale),
+                                               juce::jlimit(kSecondaryMinBrightness, 1.0f, b * kSecondaryBrightScale),
+                                               1.0f);
+    palette.background = juce::Colour::fromHSV(h,
+                                                juce::jlimit(0.0f, kBackgroundMaxSaturation, s * kBackgroundSatScale),
+                                                juce::jlimit(kBackgroundMinBrightness, kBackgroundMaxBrightness, b * kBackgroundBrightScale),
+                                                1.0f);
+    palette.surface   = juce::Colour::fromHSV(h,
+                                               juce::jlimit(0.0f, kSurfaceMaxSaturation, s * kSurfaceSatScale),
+                                               juce::jlimit(kSurfaceMinBrightness, kSurfaceMaxBrightness, b * kSurfaceBrightScale),
+                                               1.0f);
+    palette.accent    = juce::Colour::fromHSV(std::fmod(h + kAccentHueOffset, 1.0f),
+                                               juce::jlimit(kAccentMinSaturation, 1.0f, s * kAccentSatScale),
+                                               juce::jlimit(kAccentMinBrightness, 1.0f, b),
+                                               1.0f);
+    palette.inactive  = juce::Colour(0xFF444444).interpolatedWith(palette.primary, 0.22f);
+    return palette;
 }
 
 //==============================================================================
@@ -55,6 +117,52 @@ void MultiEffectProcessorEditor::setupRotarySlider(juce::Slider& slider, juce::L
     label.setJustificationType(juce::Justification::centred);
     label.setLookAndFeel(&cyberpunkLF);
     addAndMakeVisible(label);
+}
+
+void MultiEffectProcessorEditor::applyThemePreset(int presetId)
+{
+    CyberpunkLookAndFeel::ThemePalette palette;
+
+    switch (presetId)
+    {
+        case themePresetCyan: palette = makeThemeFromHSB(kCyanPresetHue, 1.00f, 1.00f); break;
+        case themePresetMagenta: palette = makeThemeFromHSB(kMagentaPresetHue, 0.95f, 1.00f); break;
+        case themePresetAmber: palette = makeThemeFromHSB(kAmberPresetHue, 0.90f, 1.00f); break;
+        default: palette = {
+            CyberpunkLookAndFeel::matrixGreen,
+            CyberpunkLookAndFeel::matrixDarkGreen,
+            CyberpunkLookAndFeel::matrixDarkBG,
+            CyberpunkLookAndFeel::matrixBlack,
+            CyberpunkLookAndFeel::matrixCyan,
+            CyberpunkLookAndFeel::matrixGray
+        }; break;
+    }
+
+    cyberpunkLF.applyTheme(palette);
+    syncThemeControlsToCurrentTheme();
+    repaint();
+}
+
+void MultiEffectProcessorEditor::applyCustomThemeFromControls()
+{
+    const auto palette = makeThemeFromHSB(
+        static_cast<float>(themeHueSlider.getValue()),
+        static_cast<float>(themeSaturationSlider.getValue()),
+        static_cast<float>(themeBrightnessSlider.getValue()));
+
+    cyberpunkLF.applyTheme(palette);
+    repaint();
+}
+
+void MultiEffectProcessorEditor::syncThemeControlsToCurrentTheme()
+{
+    const auto& palette = cyberpunkLF.getTheme();
+
+    isUpdatingThemeControls = true;
+    themeHueSlider.setValue(palette.primary.getHue(), juce::dontSendNotification);
+    themeSaturationSlider.setValue(palette.primary.getSaturation(), juce::dontSendNotification);
+    themeBrightnessSlider.setValue(palette.primary.getBrightness(), juce::dontSendNotification);
+    isUpdatingThemeControls = false;
 }
 
 //==============================================================================
@@ -156,6 +264,63 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     setupRotarySlider(fuzzLevelSlider, fuzzLevelLabel);
     setupRotarySlider(fuzzMixSlider,   fuzzMixLabel);
 
+    // Theme Builder
+    themePresetLabel.setFont(CyberpunkLookAndFeel::getCustomFont().withHeight(11.0f));
+    themePresetLabel.setJustificationType(juce::Justification::centredLeft);
+    themePresetLabel.setLookAndFeel(&cyberpunkLF);
+    addAndMakeVisible(themePresetLabel);
+
+    themePresetCombo.setLookAndFeel(&cyberpunkLF);
+    themePresetCombo.addItem("Matrix Green", themePresetMatrix);
+    themePresetCombo.addItem("Cyan Pulse", themePresetCyan);
+    themePresetCombo.addItem("Magenta Glow", themePresetMagenta);
+    themePresetCombo.addItem("Amber Terminal", themePresetAmber);
+    themePresetCombo.addItem("Custom", themePresetCustom);
+    themePresetCombo.onChange = [this]
+    {
+        if (!isUpdatingThemeControls)
+        {
+            if (themePresetCombo.getSelectedId() == themePresetCustom)
+                applyCustomThemeFromControls();
+            else
+                applyThemePreset(themePresetCombo.getSelectedId());
+        }
+    };
+    addAndMakeVisible(themePresetCombo);
+
+    setupRotarySlider(themeHueSlider, themeHueLabel);
+    setupRotarySlider(themeSaturationSlider, themeSaturationLabel);
+    setupRotarySlider(themeBrightnessSlider, themeBrightnessLabel);
+
+    themeHueSlider.setRange(0.0, 1.0, 0.001);
+    themeSaturationSlider.setRange(kMinThemeSaturation, 1.0, 0.001);
+    themeBrightnessSlider.setRange(kMinThemeBrightness, 1.0, 0.001);
+
+    themeHueSlider.onValueChange = [this]
+    {
+        if (!isUpdatingThemeControls)
+        {
+            themePresetCombo.setSelectedId(themePresetCustom, juce::dontSendNotification);
+            applyCustomThemeFromControls();
+        }
+    };
+    themeSaturationSlider.onValueChange = [this]
+    {
+        if (!isUpdatingThemeControls)
+        {
+            themePresetCombo.setSelectedId(themePresetCustom, juce::dontSendNotification);
+            applyCustomThemeFromControls();
+        }
+    };
+    themeBrightnessSlider.onValueChange = [this]
+    {
+        if (!isUpdatingThemeControls)
+        {
+            themePresetCombo.setSelectedId(themePresetCustom, juce::dontSendNotification);
+            applyCustomThemeFromControls();
+        }
+    };
+
     // ------------------------------------------------------------------
     // Parameter attachments
     auto attach = [&](const juce::String& id, juce::Slider& s)
@@ -243,6 +408,9 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     attach("fuzzMix",   fuzzMixSlider);
     attachBtn("fuzzOn", fuzzOnButton);
 
+    applyThemePreset(themePresetMatrix);
+    themePresetCombo.setSelectedId(themePresetMatrix, juce::dontSendNotification);
+
     setSize(kEditorW, kEditorH);
     startTimerHz(30);
 }
@@ -279,13 +447,13 @@ void MultiEffectProcessorEditor::timerCallback()
 //==============================================================================
 void MultiEffectProcessorEditor::paint(juce::Graphics& g)
 {
-    using CP = CyberpunkLookAndFeel;
+    const auto& theme = cyberpunkLF.getTheme();
 
     // ------------------------------------------------------------------ body
-    g.fillAll(CP::matrixDarkBG);
+    g.fillAll(theme.background);
 
     // Subtle scan-line grid across the whole background
-    g.setColour(CP::matrixGreen.withAlpha(0.03f));
+    g.setColour(theme.primary.withAlpha(0.03f));
     for (int y = kHeaderH; y < getHeight(); y += 4)
         g.drawHorizontalLine(y, 0.0f, static_cast<float>(getWidth()));
     for (int x = 0; x < getWidth(); x += 40)
@@ -298,7 +466,7 @@ void MultiEffectProcessorEditor::paint(juce::Graphics& g)
 
         // Header background gradient
         g.setGradientFill(juce::ColourGradient(
-            CP::matrixBlack,
+            theme.surface,
             0.0f, 0.0f,
             juce::Colour(0xFF050820),
             0.0f, static_cast<float>(kHeaderH),
@@ -322,7 +490,7 @@ void MultiEffectProcessorEditor::paint(juce::Graphics& g)
                 const float brightness = 1.0f - static_cast<float>(i) / static_cast<float>(drop.length);
                 const juce::Colour charColour =
                     (i == 0) ? juce::Colour(0xFFCCFFCC) // leading char is near-white
-                             : CP::matrixGreen.withAlpha(drop.opacity * brightness);
+                             : theme.primary.withAlpha(drop.opacity * brightness);
                 g.setColour(charColour);
 
                 const int charIdx = (drop.charOffset + i) % numChars;
@@ -334,28 +502,28 @@ void MultiEffectProcessorEditor::paint(juce::Graphics& g)
         }
 
         // Horizontal separator line (glowing)
-        g.setColour(CP::matrixGreen.withAlpha(0.6f));
+        g.setColour(theme.primary.withAlpha(0.6f));
         g.drawHorizontalLine(kHeaderH - 1, 0.0f, static_cast<float>(getWidth()));
-        g.setColour(CP::matrixGreen.withAlpha(0.15f));
+        g.setColour(theme.primary.withAlpha(0.15f));
         g.drawHorizontalLine(kHeaderH - 3, 0.0f, static_cast<float>(getWidth()));
 
         // Plugin title
         g.setFont(CyberpunkLookAndFeel::getCustomFont().withHeight(22.0f).boldened());
-        g.setColour(CP::matrixGreen);
+        g.setColour(theme.primary);
         g.drawText("DSP4GUITAR",
                    10, 0, 200, kHeaderH,
                    juce::Justification::centredLeft);
 
         // Subtitle
         g.setFont(CyberpunkLookAndFeel::getCustomFont().withHeight(10.0f));
-        g.setColour(CP::matrixCyan.withAlpha(0.8f));
+        g.setColour(theme.accent.withAlpha(0.8f));
         g.drawText("MULTI-EFFECT PROCESSOR",
                    10, 26, 240, kHeaderH - 26,
                    juce::Justification::centredLeft);
 
         // Version tag (right side)
         g.setFont(CyberpunkLookAndFeel::getCustomFont().withHeight(10.0f));
-        g.setColour(CP::matrixGray);
+        g.setColour(theme.inactive);
         g.drawText("v1.0  //  GizzZmo",
                    getWidth() - 160, 0, 155, kHeaderH,
                    juce::Justification::centredRight);
@@ -366,7 +534,7 @@ void MultiEffectProcessorEditor::paint(juce::Graphics& g)
     //  Row 0: Bitcrusher [0,0] | RingMod     [1,0] | Tremolo   [2,0]
     //  Row 1: Phaser     [0,1] | Chorus      [1,1] | Compressor[2,1]
     //  Row 2: Delay      [0,2] | Reverb      [1,2] | WahWah    [2,2]
-    //  Row 3: Fuzz       [0,3] | [empty]            | [empty]
+    //  Row 3: Fuzz       [0,3] | Theme Builder [1,3]| [empty]
 
     auto* apvts = &audioProcessor.apvts;
     auto isOn   = [&](const juce::String& id) -> bool
@@ -386,6 +554,7 @@ void MultiEffectProcessorEditor::paint(juce::Graphics& g)
     drawEffectPanel(g, panelBounds(1, 2), "REVERB",     isOn("reverbOn"),     10);
     drawEffectPanel(g, panelBounds(2, 2), "WAH-WAH",    isOn("wahOn"),         5);
     drawEffectPanel(g, panelBounds(0, 3), "FUZZ",       isOn("fuzzOn"),        2);
+    drawEffectPanel(g, panelBounds(1, 3), "THEME BUILDER", true,                0);
 }
 
 //==============================================================================
@@ -395,7 +564,7 @@ void MultiEffectProcessorEditor::drawEffectPanel(juce::Graphics& g,
                                                   bool isActive,
                                                   int chainOrder)
 {
-    using CP = CyberpunkLookAndFeel;
+    const auto& theme = cyberpunkLF.getTheme();
 
     const auto bf = bounds.toFloat();
 
@@ -406,24 +575,24 @@ void MultiEffectProcessorEditor::drawEffectPanel(juce::Graphics& g,
     // Outer glow when active
     if (isActive)
     {
-        g.setColour(CP::matrixGreen.withAlpha(0.08f));
+        g.setColour(theme.primary.withAlpha(0.08f));
         g.fillRoundedRectangle(bf.expanded(3.0f), 7.0f);
     }
 
     // Border
-    const juce::Colour borderCol = isActive ? CP::matrixGreen : CP::matrixGray.withAlpha(0.5f);
+    const juce::Colour borderCol = isActive ? theme.primary : theme.inactive.withAlpha(0.5f);
     g.setColour(borderCol);
     g.drawRoundedRectangle(bf.reduced(0.5f), 5.0f, 1.2f);
 
     // Header strip
     const auto headerStrip = bounds.removeFromTop(28).toFloat();
-    g.setColour(isActive ? CP::matrixDarkGreen.withAlpha(0.35f)
+    g.setColour(isActive ? theme.secondary.withAlpha(0.35f)
                          : juce::Colour(0xFF0A0A14));
     g.fillRoundedRectangle(headerStrip, 4.0f);
 
     // Effect name text
     g.setFont(CyberpunkLookAndFeel::getCustomFont().withHeight(12.0f).boldened());
-    g.setColour(isActive ? CP::matrixGreen : CP::matrixGray);
+    g.setColour(isActive ? theme.primary : theme.inactive);
     g.drawText(name,
                static_cast<int>(headerStrip.getX()) + 30,
                static_cast<int>(headerStrip.getY()),
@@ -433,7 +602,7 @@ void MultiEffectProcessorEditor::drawEffectPanel(juce::Graphics& g,
 
     // Chain-order badge (top-right of header strip, e.g. "#1")
     g.setFont(CyberpunkLookAndFeel::getCustomFont().withHeight(10.0f));
-    g.setColour(isActive ? CP::matrixCyan.withAlpha(0.85f) : CP::matrixGray.withAlpha(0.55f));
+    g.setColour(isActive ? theme.accent.withAlpha(0.85f) : theme.inactive.withAlpha(0.55f));
     g.drawText("#" + juce::String(chainOrder),
                static_cast<int>(headerStrip.getRight()) - 28,
                static_cast<int>(headerStrip.getY()),
@@ -444,7 +613,7 @@ void MultiEffectProcessorEditor::drawEffectPanel(juce::Graphics& g,
     // Corner brackets (decorative)
     if (isActive)
     {
-        g.setColour(CP::matrixCyan.withAlpha(0.5f));
+        g.setColour(theme.accent.withAlpha(0.5f));
         const float bx = bf.getX();
         const float by = bf.getY();
         const float bw = bf.getWidth();
@@ -633,5 +802,19 @@ void MultiEffectProcessorEditor::resized()
               {&fuzzLevelSlider, &fuzzLevelLabel},
               {&fuzzMixSlider,   &fuzzMixLabel} },
             54, 72, 16);
+    }
+    {
+        auto p = panelBounds(1, 3);           // Theme Builder
+        auto content = p.withTrimmedTop(32).reduced(8, 6);
+        auto presetRow = content.removeFromTop(24);
+        themePresetLabel.setBounds(presetRow.removeFromLeft(60));
+        themePresetCombo.setBounds(presetRow);
+
+        content.removeFromTop(8);
+        placeKnobRow(content, 3,
+            { {&themeHueSlider,        &themeHueLabel},
+              {&themeSaturationSlider, &themeSaturationLabel},
+              {&themeBrightnessSlider, &themeBrightnessLabel} },
+            78, 72, 16);
     }
 }

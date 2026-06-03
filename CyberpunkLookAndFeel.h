@@ -22,6 +22,16 @@
 class CyberpunkLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
+    struct ThemePalette
+    {
+        juce::Colour primary;
+        juce::Colour secondary;
+        juce::Colour background;
+        juce::Colour surface;
+        juce::Colour accent;
+        juce::Colour inactive;
+    };
+
     // -------------------------------------------------------------------------
     // Colour constants (defined inline in the class body, C++17)
     static inline const juce::Colour matrixGreen    { 0xFF00FF41 };
@@ -35,56 +45,75 @@ public:
     // -------------------------------------------------------------------------
     CyberpunkLookAndFeel()
     {
+        applyTheme({
+            matrixGreen,
+            matrixDarkGreen,
+            matrixDarkBG,
+            matrixBlack,
+            matrixCyan,
+            matrixGray
+        });
+    }
+
+    void applyTheme(const ThemePalette& newTheme)
+    {
+        theme = newTheme;
+
         // Window
-        setColour(juce::ResizableWindow::backgroundColourId, matrixDarkBG);
-        setColour(juce::DocumentWindow::backgroundColourId,  matrixBlack);
+        setColour(juce::ResizableWindow::backgroundColourId, theme.background);
+        setColour(juce::DocumentWindow::backgroundColourId,  theme.surface);
 
         // Sliders
-        setColour(juce::Slider::backgroundColourId,           matrixBlack);
-        setColour(juce::Slider::thumbColourId,                matrixGreen);
-        setColour(juce::Slider::trackColourId,                matrixDarkGreen);
-        setColour(juce::Slider::rotarySliderFillColourId,     matrixGreen);
-        setColour(juce::Slider::rotarySliderOutlineColourId,  matrixDarkGreen);
-        setColour(juce::Slider::textBoxTextColourId,          matrixGreen);
-        setColour(juce::Slider::textBoxBackgroundColourId,    matrixBlack);
-        setColour(juce::Slider::textBoxHighlightColourId,     matrixDarkGreen);
-        setColour(juce::Slider::textBoxOutlineColourId,       matrixDarkGreen);
+        setColour(juce::Slider::backgroundColourId,           theme.surface);
+        setColour(juce::Slider::thumbColourId,                theme.primary);
+        setColour(juce::Slider::trackColourId,                theme.secondary);
+        setColour(juce::Slider::rotarySliderFillColourId,     theme.primary);
+        setColour(juce::Slider::rotarySliderOutlineColourId,  theme.secondary);
+        setColour(juce::Slider::textBoxTextColourId,          theme.primary);
+        setColour(juce::Slider::textBoxBackgroundColourId,    theme.surface);
+        setColour(juce::Slider::textBoxHighlightColourId,     theme.secondary);
+        setColour(juce::Slider::textBoxOutlineColourId,       theme.secondary);
 
         // Labels
-        setColour(juce::Label::textColourId,       matrixGreen);
+        setColour(juce::Label::textColourId,       theme.primary);
         setColour(juce::Label::backgroundColourId, juce::Colours::transparentBlack);
         setColour(juce::Label::outlineColourId,    juce::Colours::transparentBlack);
 
         // Toggle buttons
-        setColour(juce::ToggleButton::textColourId,         matrixGreen);
-        setColour(juce::ToggleButton::tickColourId,         matrixGreen);
-        setColour(juce::ToggleButton::tickDisabledColourId, matrixGray);
+        setColour(juce::ToggleButton::textColourId,         theme.primary);
+        setColour(juce::ToggleButton::tickColourId,         theme.primary);
+        setColour(juce::ToggleButton::tickDisabledColourId, theme.inactive);
 
         // Text buttons
-        setColour(juce::TextButton::buttonColourId,    matrixDarkBG);
-        setColour(juce::TextButton::buttonOnColourId,  matrixDarkGreen);
-        setColour(juce::TextButton::textColourOffId,   matrixGreen);
-        setColour(juce::TextButton::textColourOnId,    matrixGreen);
+        setColour(juce::TextButton::buttonColourId,    theme.background);
+        setColour(juce::TextButton::buttonOnColourId,  theme.secondary);
+        setColour(juce::TextButton::textColourOffId,   theme.primary);
+        setColour(juce::TextButton::textColourOnId,    theme.primary);
 
         // ComboBox
-        setColour(juce::ComboBox::backgroundColourId,      matrixDarkBG);
-        setColour(juce::ComboBox::textColourId,            matrixGreen);
-        setColour(juce::ComboBox::outlineColourId,         matrixDarkGreen);
-        setColour(juce::ComboBox::buttonColourId,          matrixDarkGreen);
-        setColour(juce::ComboBox::arrowColourId,           matrixGreen);
-        setColour(juce::ComboBox::focusedOutlineColourId,  matrixGreen);
+        setColour(juce::ComboBox::backgroundColourId,      theme.background);
+        setColour(juce::ComboBox::textColourId,            theme.primary);
+        setColour(juce::ComboBox::outlineColourId,         theme.secondary);
+        setColour(juce::ComboBox::buttonColourId,          theme.secondary);
+        setColour(juce::ComboBox::arrowColourId,           theme.primary);
+        setColour(juce::ComboBox::focusedOutlineColourId,  theme.primary);
 
         // PopupMenu
-        setColour(juce::PopupMenu::backgroundColourId,            matrixDarkBG);
-        setColour(juce::PopupMenu::textColourId,                  matrixGreen);
-        setColour(juce::PopupMenu::headerTextColourId,            matrixCyan);
-        setColour(juce::PopupMenu::highlightedBackgroundColourId, matrixDarkGreen);
-        setColour(juce::PopupMenu::highlightedTextColourId,       matrixBlack);
+        setColour(juce::PopupMenu::backgroundColourId,            theme.background);
+        setColour(juce::PopupMenu::textColourId,                  theme.primary);
+        setColour(juce::PopupMenu::headerTextColourId,            theme.accent);
+        setColour(juce::PopupMenu::highlightedBackgroundColourId, theme.secondary);
+        setColour(juce::PopupMenu::highlightedTextColourId,       theme.surface);
 
         // ScrollBar
-        setColour(juce::ScrollBar::backgroundColourId, matrixDarkBG);
-        setColour(juce::ScrollBar::thumbColourId,      matrixDarkGreen);
-        setColour(juce::ScrollBar::trackColourId,      matrixBlack);
+        setColour(juce::ScrollBar::backgroundColourId, theme.background);
+        setColour(juce::ScrollBar::thumbColourId,      theme.secondary);
+        setColour(juce::ScrollBar::trackColourId,      theme.surface);
+    }
+
+    const ThemePalette& getTheme() const noexcept
+    {
+        return theme;
     }
 
     // =========================================================================
@@ -104,11 +133,11 @@ public:
         const float angle    = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
 
         // Outer glow ring
-        g.setColour(matrixGreen.withAlpha(0.12f));
+        g.setColour(theme.primary.withAlpha(0.12f));
         g.fillEllipse(rx - 4.0f, ry - 4.0f, rw + 8.0f, rw + 8.0f);
 
         // Background disc
-        g.setColour(matrixBlack);
+        g.setColour(theme.surface);
         g.fillEllipse(rx, ry, rw, rw);
 
         // Track arc (full range, dim)
@@ -116,7 +145,7 @@ public:
             juce::Path track;
             track.addArc(rx + 2.0f, ry + 2.0f, rw - 4.0f, rw - 4.0f,
                          rotaryStartAngle, rotaryEndAngle, true);
-            g.setColour(matrixDarkGreen.withAlpha(0.4f));
+            g.setColour(theme.secondary.withAlpha(0.4f));
             g.strokePath(track, juce::PathStrokeType(2.5f));
         }
 
@@ -125,13 +154,13 @@ public:
             juce::Path arc;
             arc.addArc(rx + 2.0f, ry + 2.0f, rw - 4.0f, rw - 4.0f,
                        rotaryStartAngle, angle, true);
-            g.setColour(matrixGreen);
+            g.setColour(theme.primary);
             g.strokePath(arc, juce::PathStrokeType(3.0f,
                 juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
         }
 
         // Outer ring
-        g.setColour(matrixDarkGreen);
+        g.setColour(theme.secondary);
         g.drawEllipse(rx, ry, rw, rw, 1.2f);
 
         // Thumb pointer
@@ -143,15 +172,15 @@ public:
             const auto xform = juce::AffineTransform::rotation(angle)
                                    .translated(centreX, centreY);
             // Soft glow
-            g.setColour(matrixGreen.withAlpha(0.25f));
+            g.setColour(theme.primary.withAlpha(0.25f));
             g.fillPath(thumb, xform.scaled(1.8f, 1.0f, centreX, centreY));
             // Sharp pointer
-            g.setColour(matrixGreen);
+            g.setColour(theme.primary);
             g.fillPath(thumb, xform);
         }
 
         // Centre dot
-        g.setColour(matrixGreen);
+        g.setColour(theme.primary);
         g.fillEllipse(centreX - 2.5f, centreY - 2.5f, 5.0f, 5.0f);
     }
 
@@ -171,27 +200,27 @@ public:
         if (button.getToggleState())
         {
             // Glow
-            g.setColour(matrixGreen.withAlpha(0.25f));
+            g.setColour(theme.primary.withAlpha(0.25f));
             g.fillEllipse(ledBox.expanded(4.0f));
             // Fill
-            g.setColour(matrixGreen);
+            g.setColour(theme.primary);
             g.fillEllipse(ledBox);
             // Border
-            g.setColour(matrixGreen.brighter(0.4f));
+            g.setColour(theme.primary.brighter(0.4f));
             g.drawEllipse(ledBox, 1.5f);
         }
         else
         {
-            g.setColour(matrixGray.withAlpha(0.5f));
+            g.setColour(theme.inactive.withAlpha(0.5f));
             g.fillEllipse(ledBox);
-            g.setColour(matrixGray);
+            g.setColour(theme.inactive);
             g.drawEllipse(ledBox, 1.2f);
         }
 
         // Text
         auto textBounds = bounds.withLeft(ledBox.getRight() + 5.0f);
         g.setFont(getCustomFont().withHeight(12.0f));
-        auto textColour = button.getToggleState() ? matrixGreen : matrixGray;
+        auto textColour = button.getToggleState() ? theme.primary : theme.inactive;
         if (shouldDrawButtonAsHighlighted)
             textColour = textColour.brighter (0.2f);
         g.setColour (textColour);
@@ -209,14 +238,14 @@ public:
     {
         auto bounds = button.getLocalBounds().toFloat().reduced(0.5f);
 
-        juce::Colour base = button.getToggleState() ? matrixDarkGreen : matrixDarkBG;
+        juce::Colour base = button.getToggleState() ? theme.secondary : theme.background;
         if (shouldDrawButtonAsDown)      base = base.darker(0.35f);
         else if (shouldDrawButtonAsHighlighted) base = base.brighter(0.12f);
 
         g.setColour(base);
         g.fillRoundedRectangle(bounds, 4.0f);
 
-        juce::Colour outline = button.getToggleState() ? matrixGreen : matrixDarkGreen;
+        juce::Colour outline = button.getToggleState() ? theme.primary : theme.secondary;
         if (shouldDrawButtonAsHighlighted) outline = outline.brighter(0.3f);
         g.setColour(outline);
         g.drawRoundedRectangle(bounds, 4.0f, 1.5f);
@@ -228,7 +257,7 @@ public:
                          bool /*shouldDrawButtonAsDown*/) override
     {
         g.setFont(getCustomFont().withHeight(13.0f));
-        g.setColour(button.getToggleState() ? matrixGreen : matrixDarkGreen.brighter(0.5f));
+        g.setColour(button.getToggleState() ? theme.primary : theme.secondary.brighter(0.5f));
         g.drawFittedText(button.getButtonText(), button.getLocalBounds(),
                          juce::Justification::centred, 1);
     }
@@ -272,5 +301,6 @@ public:
     }
 
 private:
+    ThemePalette theme {};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CyberpunkLookAndFeel)
 };
