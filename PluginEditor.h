@@ -195,5 +195,36 @@ private:
     // Tooltip window – shows parameter info on hover
     juce::TooltipWindow tooltipWindow { this, 600 };
 
+    
+    // Reorder buttons (one pair per effect)
+    std::array<juce::TextButton, 13> upButtons;
+    std::array<juce::TextButton, 13> downButtons;
+    std::array<int, 13> effectIndices = {
+        MultiEffectProcessor::NoiseGateIndex,
+        MultiEffectProcessor::OverdriveIndex,
+        MultiEffectProcessor::BitcrusherIndex,
+        MultiEffectProcessor::FuzzIndex,
+        MultiEffectProcessor::CompressorIndex,
+        MultiEffectProcessor::RingModIndex,
+        MultiEffectProcessor::WahIndex,
+        MultiEffectProcessor::PhaserIndex,
+        MultiEffectProcessor::ChorusIndex,
+        MultiEffectProcessor::TremoloIndex,
+        MultiEffectProcessor::FlangerIndex,
+        MultiEffectProcessor::DelayIndex,
+        MultiEffectProcessor::ReverbIndex
+    };
+
+    // Preset browser
+    juce::ComboBox presetList;
+    juce::ComboBox presetCategoryCombo;
+    juce::Label presetCategoryLabel { {}, "Category" };
+    juce::TextButton loadPresetButton { "Load" };
+    std::vector<std::tuple<juce::String, juce::String, std::map<juce::String, float>>> filteredPresets;
+
+    void moveEffect(int index, int direction);
+    void refreshPresetList();
+    void applySelectedPreset();
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MultiEffectProcessorEditor)
 };

@@ -1,3 +1,4 @@
+#include "PresetManager.h"
 #include "PluginEditor.h"
 #include <chrono>
 #include <cmath>
@@ -411,6 +412,44 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     applyThemePreset(themePresetMatrix);
     themePresetCombo.setSelectedId(themePresetMatrix, juce::dontSendNotification);
 
+    // Reorder buttons
+    for (size_t i = 0; i < upButtons.size(); ++i)
+    {
+        upButtons[i].setButtonText("▲");
+        downButtons[i].setButtonText("▼");
+        upButtons[i].onClick = [this, i] { moveEffect(effectIndices[i], -1); };
+        downButtons[i].onClick = [this, i] { moveEffect(effectIndices[i], +1); };
+        addAndMakeVisible(upButtons[i]);
+        addAndMakeVisible(downButtons[i]);
+        upButtons[i].setLookAndFeel(&cyberpunkLF);
+        downButtons[i].setLookAndFeel(&cyberpunkLF);
+    }
+
+    // Preset browser
+    presetCategoryCombo.addItem("All", 1);
+    presetCategoryCombo.addItem("Clean", 2);
+    presetCategoryCombo.addItem("Drive", 3);
+    presetCategoryCombo.addItem("Lead", 4);
+    presetCategoryCombo.addItem("Fuzz", 5);
+    presetCategoryCombo.addItem("Ambient", 6);
+    presetCategoryCombo.addItem("Modulation", 7);
+    presetCategoryCombo.addItem("Lo-Fi", 8);
+    presetCategoryCombo.addItem("Utility", 9);
+    presetCategoryCombo.addItem("Dynamics", 10);
+    presetCategoryCombo.addItem("Time", 11);
+    presetCategoryCombo.addItem("Experimental", 12);
+    presetCategoryCombo.setSelectedId(1);
+    presetCategoryCombo.onChange = [this] { refreshPresetList(); };
+    addAndMakeVisible(presetCategoryCombo);
+    addAndMakeVisible(presetCategoryLabel);
+    presetCategoryLabel.setLookAndFeel(&cyberpunkLF);
+
+    addAndMakeVisible(presetList);
+    addAndMakeVisible(loadPresetButton);
+    loadPresetButton.onClick = [this] { applySelectedPreset(); };
+    loadPresetButton.setLookAndFeel(&cyberpunkLF);
+    refreshPresetList();
+
     setSize(kEditorW, kEditorH);
     startTimerHz(30);
 }
@@ -816,5 +855,50 @@ void MultiEffectProcessorEditor::resized()
               {&themeSaturationSlider, &themeSaturationLabel},
               {&themeBrightnessSlider, &themeBrightnessLabel} },
             78, 72, 16);
+    }
+}
+
+void MultiEffectProcessorEditor::moveEffect(int index, int direction)
+{
+    auto order = audioProcessor.getChainOrder();
+    auto it = std::find(order.begin(), order.end(), index);
+    if (it == order.end()) return;
+    int pos = (int)std::distance(order.begin(), it);
+    int newPos = pos + direction;
+    if (newPos < 0 || newPos >= (int)order.size()) return;
+    std::swap(order[pos], order[newPos]);
+    audioProcessor.setChainOrder(order);
+    resized();
+    repaint();
+}
+
+void MultiEffectProcessorEditor::refreshPresetList()
+{
+    filteredPresets.clear();
+    presetList.clear();
+    const auto& all = PresetManager::getFactoryPresets();
+    juce::String cat = presetCategoryCombo.getText();
+    int id = 1;
+    for (const auto& p : all)
+    {
+        if (cat.isEmpty() || cat == "All" || std::get<1>(p) == cat)
+        {
+            filteredPresets.push_back(p);
+            presetList.addItem(std::get<0>(p), id++);
+        }
+    }
+    if (presetList.getNumItems() > 0)
+        presetList.setSelectedId(1);
+}
+
+void MultiEffectProcessorEditor::applySelectedPreset()
+{
+    int row = presetList.getSelectedId() - 1;
+    if (row < 0 || row >= (int)filteredPresets.size()) return;
+    const auto& params = std::get<2>(filteredPresets[row]);
+    for (const auto& kv : params)
+    {
+        if (auto* param = audioProcessor.apvts.getParameter(kv.first))
+            param->setValueNotifyingHost(param->convertTo0to1(kv.second));
     }
 }
