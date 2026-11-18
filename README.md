@@ -43,6 +43,7 @@ The plugin provides a **13-effect processing chain** (including Noise Gate, Over
 ✅ **Reverb** — Schroeder-style room reverb  
 ✅ **Preset save/load** — full parameter state persisted via XML  
 ✅ **Real-time waveform visualisation**  
+✅ **Host tempo / MIDI clock sync** — Delay, Tremolo, Phaser, Chorus, Flanger and Auto Wah can lock to DAW BPM with musical note divisions  
 
 ---
 

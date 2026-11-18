@@ -126,6 +126,9 @@ Multiplies the signal with a sine-wave LFO to produce metallic, robot-like, or b
 
 ## 7 · Auto Wah
 
+**Tempo Sync:** When the corresponding Sync toggle is enabled, the rate/time follows the host tempo (MIDI clock / DAW BPM) using the selected note division (1/1, 1/2, 1/2., 1/4, 1/4., 1/8, 1/8., 1/16, 1/16., 1/32).
+
+
 An LFO-driven band-pass filter that sweeps its centre frequency to produce a wah-wah effect automatically.
 
 **DSP class:** `WahWah` (`MultiEffectProcessor.h`)  
@@ -145,6 +148,9 @@ An LFO-driven band-pass filter that sweeps its centre frequency to produce a wah
 ---
 
 ## 8 · Phaser
+
+**Tempo Sync:** When the corresponding Sync toggle is enabled, the rate/time follows the host tempo (MIDI clock / DAW BPM) using the selected note division (1/1, 1/2, 1/2., 1/4, 1/4., 1/8, 1/8., 1/16, 1/16., 1/32).
+
 
 An all-pass filter network that creates frequency notches, producing sweeping phase-cancellation effects.
 
@@ -177,6 +183,9 @@ Adds a slightly detuned, delayed copy of the signal for a rich ensemble/widening
 
 ## 10 · Tremolo
 
+**Tempo Sync:** When the corresponding Sync toggle is enabled, the rate/time follows the host tempo (MIDI clock / DAW BPM) using the selected note division (1/1, 1/2, 1/2., 1/4, 1/4., 1/8, 1/8., 1/16, 1/16., 1/32).
+
+
 Periodically modulates the signal amplitude using a sine-wave LFO to create a rhythmic volume pulsing effect.
 
 **DSP class:** `Tremolo` (`MultiEffectProcessor.h`)
@@ -193,6 +202,9 @@ Periodically modulates the signal amplitude using a sine-wave LFO to create a rh
 ---
 
 ## 11 · Flanger
+
+**Tempo Sync:** When the corresponding Sync toggle is enabled, the rate/time follows the host tempo (MIDI clock / DAW BPM) using the selected note division (1/1, 1/2, 1/2., 1/4, 1/4., 1/8, 1/8., 1/16, 1/16., 1/32).
+
 
 Short modulated delay with feedback, producing classic jet-flange and chorus-like sweeping effects.
 
@@ -211,6 +223,9 @@ Short modulated delay with feedback, producing classic jet-flange and chorus-lik
 ---
 
 ## 12 · Delay
+
+**Tempo Sync:** When the corresponding Sync toggle is enabled, the rate/time follows the host tempo (MIDI clock / DAW BPM) using the selected note division (1/1, 1/2, 1/2., 1/4, 1/4., 1/8, 1/8., 1/16, 1/16., 1/32).
+
 
 A tape-style feedback delay with mix control. Maximum delay time is 2 seconds.
 
