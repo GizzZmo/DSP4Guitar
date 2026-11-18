@@ -12,7 +12,7 @@
 
 A professional-grade, multi-effect **VST3/AU plugin** built with the **JUCE framework**, wrapped in a full **cyberpunk / Matrix-terminal aesthetic** — neon-green-on-black UI, scrolling Matrix-rain header animation, glowing LED toggles, and custom rotary knobs.
 
-The plugin provides a **10-effect processing chain**, each independently bypassable, running in a fixed signal-flow order optimised for guitar. Parameters are DAW-automatable via JUCE's `AudioProcessorValueTreeState` and plugin state is persisted across sessions.
+The plugin provides a **13-effect processing chain** (including Noise Gate, Overdrive and Flanger), each independently bypassable. The signal flow is **reorderable at runtime** via ▲/▼ controls on each panel. Parameters are DAW-automatable via JUCE's `AudioProcessorValueTreeState` and both parameters and chain order are persisted across sessions. Parameters are DAW-automatable via JUCE's `AudioProcessorValueTreeState` and plugin state is persisted across sessions.
 
 ## UI Preview
 
@@ -27,7 +27,10 @@ The plugin provides a **10-effect processing chain**, each independently bypassa
 ## Features
 
 ✅ **Cyberpunk / Matrix terminal UI** — neon green `#00FF41`, dark-panel aesthetic, scrolling rain animation  
-✅ **10-effect signal chain** — each effect independently bypassable  
+✅ **13-effect reorderable signal chain** — each effect independently bypassable; order saved with presets  
+✅ **Noise Gate** — envelope follower with hard gate  
+✅ **Overdrive** — soft-clipping drive with mix and level  
+✅ **Flanger** — short modulated delay with feedback  
 ✅ **Bitcrusher** — bit-depth reduction and sample-rate downsampling for lo-fi tones  
 ✅ **Fuzz** — hard-clipping drive with tone shaping and output level  
 ✅ **3-Band Multiband Compressor** — independent crossover compression per band  
@@ -45,20 +48,67 @@ The plugin provides a **10-effect processing chain**, each independently bypassa
 
 ## Effect Chain
 
-Effects are processed in the following fixed order. Each effect can be enabled or disabled independently with its toggle button.
+Effects can be reordered at runtime with the ▲/▼ buttons on each panel. The order is saved with the plugin state and presets. Default order:
 
 | # | Effect | Key Controls |
 |---|--------|-------------|
-| 1 | **Bitcrusher** | Bit Depth (2–16 bits), Downsample rate (1–100×) |
-| 2 | **Fuzz** | Drive (1–100), Tone, Level (dB), Mix |
-| 3 | **Multiband Compressor** | Per-band threshold (Low/Mid/High), Ratio, Attack, Release, Makeup gain |
-| 4 | **Ring Modulator** | LFO Rate (20–5 000 Hz), Depth |
-| 5 | **Auto Wah** | LFO Rate, Sweep Depth, Centre Frequency (300–3 000 Hz), Resonance, Mix |
-| 6 | **Phaser** | Rate, Depth, Feedback, Mix |
-| 7 | **Chorus** | Rate, Depth, Mix |
-| 8 | **Tremolo** | Rate, Depth |
-| 9 | **Delay** | Time (1–2 000 ms), Feedback, Mix |
-| 10 | **Reverb** | Room Size, Damping, Wet Level, Dry Level, Width |
+| 1 | **Noise Gate** | Threshold (dB) |
+| 2 | **Overdrive** | Drive, Level (dB), Mix |
+| 3 | **Bitcrusher** | Bit Depth (2–16 bits), Downsample rate (1–100×) |
+| 4 | **Fuzz** | Drive (1–100), Tone, Level (dB), Mix |
+| 5 | **Multiband Compressor** | Per-band threshold (Low/Mid/High), Ratio, Attack, Release, Makeup gain |
+| 6 | **Ring Modulator** | LFO Rate (20–5 000 Hz), Depth |
+| 7 | **Auto Wah** | LFO Rate, Sweep Depth, Centre Frequency (300–3 000 Hz), Resonance, Mix |
+| 8 | **Phaser** | Rate, Depth, Feedback, Mix |
+| 9 | **Chorus** | Rate, Depth, Mix |
+| 10 | **Tremolo** | Rate, Depth |
+| 11 | **Flanger** | Rate, Depth, Feedback, Mix |
+| 12 | **Delay** | Time (1–2 000 ms), Feedback, Mix |
+| 13 | **Reverb** | Room Size, Damping, Wet Level, Dry Level, Width |
+
+A factory preset browser with 20 presets (filtered by category) is available in the UI. 
+## Factory Presets
+
+The plugin ships with **20 factory presets** organised by category:
+
+| Category | Examples |
+|----------|----------|
+| Clean | Clean Sparkle, Wide Chorus, Clean Delay |
+| Drive | Crunch Rhythm |
+| Lead | Lead Sustain, High Gain Lead |
+| Fuzz | Fuzz Face, Vintage Fuzz |
+| Ambient | Ambient Wash, Big Room |
+| Modulation | Wah Solo, Phaser Sweep, Flanger Jet, Tremolo Pulse, Auto Wah Funk |
+| Lo-Fi | Lo-Fi Crush |
+| Utility | Gate & Boost |
+| Dynamics | Multiband Glue |
+| Time | Slapback Delay |
+| Experimental | Ring Mod Sci-Fi |
+
+Use the category filter and preset combo in the UI, then press **Load**. Chain order is also restored with the plugin state.
+
+See [`Documentation/effects-reference.md`](Documentation/effects-reference.md) for the full parameter reference.
+
+
+## Factory Presets
+
+The plugin ships with **20 factory presets** organised by category:
+
+| Category | Examples |
+|----------|----------|
+| Clean | Clean Sparkle, Wide Chorus, Clean Delay |
+| Drive | Crunch Rhythm |
+| Lead | Lead Sustain, High Gain Lead |
+| Fuzz | Fuzz Face, Vintage Fuzz |
+| Ambient | Ambient Wash, Big Room |
+| Modulation | Wah Solo, Phaser Sweep, Flanger Jet, Tremolo Pulse, Auto Wah Funk |
+| Lo-Fi | Lo-Fi Crush |
+| Utility | Gate & Boost |
+| Dynamics | Multiband Glue |
+| Time | Slapback Delay |
+| Experimental | Ring Mod Sci-Fi |
+
+Use the category filter and preset combo in the UI, then press **Load**. Chain order is also restored with the plugin state.
 
 See [`Documentation/effects-reference.md`](Documentation/effects-reference.md) for the full parameter reference, including ranges and default values.
 
