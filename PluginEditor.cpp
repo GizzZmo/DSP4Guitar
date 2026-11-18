@@ -412,6 +412,26 @@ MultiEffectProcessorEditor::MultiEffectProcessorEditor(MultiEffectProcessor& p)
     applyThemePreset(themePresetMatrix);
     themePresetCombo.setSelectedId(themePresetMatrix, juce::dontSendNotification);
 
+    
+    // Tempo sync controls
+    auto setupSync = [this](juce::ToggleButton& btn, juce::ComboBox& combo, const juce::String& syncId, const juce::String& noteId)
+    {
+        btn.setLookAndFeel(&cyberpunkLF);
+        addAndMakeVisible(btn);
+        buttonAttachments.push_back(std::make_unique<ButtonAttachment>(audioProcessor.apvts, syncId, btn));
+
+        combo.setLookAndFeel(&cyberpunkLF);
+        combo.addItemList(juce::StringArray{ "1/1", "1/2", "1/2.", "1/4", "1/4.", "1/8", "1/8.", "1/16", "1/16.", "1/32" }, 1);
+        addAndMakeVisible(combo);
+        // Choice parameter attachment would go here; for now the parameter is driven from the processor side
+    };
+
+    setupSync(delaySyncButton, delayNoteCombo, "delaySync", "delayNote");
+    setupSync(tremoloSyncButton, tremoloNoteCombo, "tremoloSync", "tremoloNote");
+    setupSync(phaserSyncButton, phaserNoteCombo, "phaserSync", "phaserNote");
+    setupSync(chorusSyncButton, chorusNoteCombo, "chorusSync", "chorusNote");
+    setupSync(flangerSyncButton, flangerNoteCombo, "flangerSync", "flangerNote");
+    setupSync(wahSyncButton, wahNoteCombo, "wahSync", "wahNote");
     // Reorder buttons
     for (size_t i = 0; i < upButtons.size(); ++i)
     {

@@ -716,6 +716,26 @@ private:
 
     void updateParameters();
     void processEffect(int index, juce::AudioBuffer<float>& buffer);
+
+    // Tempo sync
+    juce::AudioParameterBool*  delaySync = nullptr;
+    juce::AudioParameterChoice* delayNote = nullptr;
+    juce::AudioParameterBool*  tremoloSync = nullptr;
+    juce::AudioParameterChoice* tremoloNote = nullptr;
+    juce::AudioParameterBool*  phaserSync = nullptr;
+    juce::AudioParameterChoice* phaserNote = nullptr;
+    juce::AudioParameterBool*  chorusSync = nullptr;
+    juce::AudioParameterChoice* chorusNote = nullptr;
+    juce::AudioParameterBool*  flangerSync = nullptr;
+    juce::AudioParameterChoice* flangerNote = nullptr;
+    juce::AudioParameterBool*  wahSync = nullptr;
+    juce::AudioParameterChoice* wahNote = nullptr;
+
+    double currentBpm = 120.0;
+    void updateTempoFromHost();
+    float noteDivisionToHz(int noteIndex) const;
+    float noteDivisionToMs(int noteIndex) const;
+
     void setChainOrder(const std::vector<int>& order);
     const std::vector<int>& getChainOrder() const { return chainOrder; }
 

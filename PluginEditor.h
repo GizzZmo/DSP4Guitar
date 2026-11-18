@@ -215,6 +215,20 @@ private:
         MultiEffectProcessor::ReverbIndex
     };
 
+    
+    // Tempo sync controls
+    juce::ToggleButton delaySyncButton { "Sync" };
+    juce::ComboBox delayNoteCombo;
+    juce::ToggleButton tremoloSyncButton { "Sync" };
+    juce::ComboBox tremoloNoteCombo;
+    juce::ToggleButton phaserSyncButton { "Sync" };
+    juce::ComboBox phaserNoteCombo;
+    juce::ToggleButton chorusSyncButton { "Sync" };
+    juce::ComboBox chorusNoteCombo;
+    juce::ToggleButton flangerSyncButton { "Sync" };
+    juce::ComboBox flangerNoteCombo;
+    juce::ToggleButton wahSyncButton { "Sync" };
+    juce::ComboBox wahNoteCombo;
     // Preset browser
     juce::ComboBox presetList;
     juce::ComboBox presetCategoryCombo;

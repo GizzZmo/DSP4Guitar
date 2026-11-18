@@ -71,6 +71,19 @@ MultiEffectProcessor::MultiEffectProcessor()
     fuzzTone = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("fuzzTone"));
     fuzzLevel = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("fuzzLevel"));
     fuzzMix = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("fuzzMix"));
+    delaySync = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("delaySync"));
+    delayNote = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("delayNote"));
+    tremoloSync = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("tremoloSync"));
+    tremoloNote = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("tremoloNote"));
+    phaserSync = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("phaserSync"));
+    phaserNote = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("phaserNote"));
+    chorusSync = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("chorusSync"));
+    chorusNote = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("chorusNote"));
+    flangerSync = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("flangerSync"));
+    flangerNote = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("flangerNote"));
+    wahSync = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("wahSync"));
+    wahNote = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("wahNote"));
+
     noiseGateOn = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("noiseGateOn"));
     noiseGateThreshold = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("noiseGateThreshold"));
 
@@ -98,6 +111,9 @@ MultiEffectProcessor::~MultiEffectProcessor() {}
 juce::AudioProcessorValueTreeState::ParameterLayout MultiEffectProcessor::createParameterLayout()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
+
+    juce::StringArray noteDivisions { "1/1", "1/2", "1/2.", "1/4", "1/4.", "1/8", "1/8.", "1/16", "1/16.", "1/32" };
+
 
     
     // --- Noise Gate ---
@@ -144,6 +160,25 @@ juce::AudioProcessorValueTreeState::ParameterLayout MultiEffectProcessor::create
     params.push_back(std::make_unique<juce::AudioParameterFloat>("tremoloRate", "Tremolo Rate", juce::NormalisableRange<float>(0.1f, 20.0f, 0.01f), 5.0f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("tremoloDepth", "Tremolo Depth", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
 
+    
+    // --- Tempo Sync ---
+    params.push_back(std::make_unique<juce::AudioParameterBool>("delaySync", "Delay Sync", false));
+    params.push_back(std::make_unique<juce::AudioParameterChoice>("delayNote", "Delay Note", noteDivisions, 5)); // default 1/8
+
+    params.push_back(std::make_unique<juce::AudioParameterBool>("tremoloSync", "Tremolo Sync", false));
+    params.push_back(std::make_unique<juce::AudioParameterChoice>("tremoloNote", "Tremolo Note", noteDivisions, 5));
+
+    params.push_back(std::make_unique<juce::AudioParameterBool>("phaserSync", "Phaser Sync", false));
+    params.push_back(std::make_unique<juce::AudioParameterChoice>("phaserNote", "Phaser Note", noteDivisions, 5));
+
+    params.push_back(std::make_unique<juce::AudioParameterBool>("chorusSync", "Chorus Sync", false));
+    params.push_back(std::make_unique<juce::AudioParameterChoice>("chorusNote", "Chorus Note", noteDivisions, 5));
+
+    params.push_back(std::make_unique<juce::AudioParameterBool>("flangerSync", "Flanger Sync", false));
+    params.push_back(std::make_unique<juce::AudioParameterChoice>("flangerNote", "Flanger Note", noteDivisions, 5));
+
+    params.push_back(std::make_unique<juce::AudioParameterBool>("wahSync", "Wah Sync", false));
+    params.push_back(std::make_unique<juce::AudioParameterChoice>("wahNote", "Wah Note", noteDivisions, 5));
     // --- Delay ---
     params.push_back(std::make_unique<juce::AudioParameterBool>("delayOn", "Delay On", false));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("delayTime", "Delay Time (ms)", juce::NormalisableRange<float>(1.0f, 2000.0f, 1.0f), 300.0f));
@@ -227,6 +262,36 @@ void MultiEffectProcessor::setChainOrder(const std::vector<int>& order)
     chainOrder = order;
 }
 
+
+void MultiEffectProcessor::updateTempoFromHost()
+{
+    if (auto* playHead = getPlayHead())
+    {
+        if (auto pos = playHead->getPosition())
+        {
+            if (pos->getBpm().hasValue())
+                currentBpm = *pos->getBpm();
+        }
+    }
+}
+
+float MultiEffectProcessor::noteDivisionToHz(int noteIndex) const
+{
+    // 1/1, 1/2, 1/2., 1/4, 1/4., 1/8, 1/8., 1/16, 1/16., 1/32
+    static const float beats[] = { 4.0f, 2.0f, 3.0f, 1.0f, 1.5f, 0.5f, 0.75f, 0.25f, 0.375f, 0.125f };
+    if (noteIndex < 0 || noteIndex >= 10) noteIndex = 5;
+    float beatLengthSec = 60.0f / (float)currentBpm;
+    return 1.0f / (beatLengthSec * beats[noteIndex]);
+}
+
+float MultiEffectProcessor::noteDivisionToMs(int noteIndex) const
+{
+    static const float beats[] = { 4.0f, 2.0f, 3.0f, 1.0f, 1.5f, 0.5f, 0.75f, 0.25f, 0.375f, 0.125f };
+    if (noteIndex < 0 || noteIndex >= 10) noteIndex = 5;
+    float beatLengthMs = 60000.0f / (float)currentBpm;
+    return beatLengthMs * beats[noteIndex];
+}
+
 void MultiEffectProcessor::processEffect(int index, juce::AudioBuffer<float>& buffer)
 {
     juce::dsp::AudioBlock<float> block(buffer);
@@ -292,7 +357,7 @@ void MultiEffectProcessor::processEffect(int index, juce::AudioBuffer<float>& bu
         case WahIndex:
             if (wahOn && wahOn->get())
             {
-                wah.setRate(wahRate->get());
+                wah.setRate(wahSync && wahSync->get() ? noteDivisionToHz(wahNote->getIndex()) : wahRate->get());
                 wah.setDepth(wahDepth->get());
                 wah.setCenterFreq(wahFreq->get());
                 wah.setResonance(wahResonance->get());
@@ -303,7 +368,7 @@ void MultiEffectProcessor::processEffect(int index, juce::AudioBuffer<float>& bu
         case PhaserIndex:
             if (phaserOn && phaserOn->get())
             {
-                phaser.setRate(phaserRate->get());
+                phaser.setRate(phaserSync && phaserSync->get() ? noteDivisionToHz(phaserNote->getIndex()) : phaserRate->get());
                 phaser.setDepth(phaserDepth->get());
                 phaser.setFeedback(phaserFeedback->get());
                 phaser.setMix(phaserMix->get());
@@ -313,7 +378,7 @@ void MultiEffectProcessor::processEffect(int index, juce::AudioBuffer<float>& bu
         case ChorusIndex:
             if (chorusOn && chorusOn->get())
             {
-                chorus.setRate(chorusRate->get());
+                chorus.setRate(chorusSync && chorusSync->get() ? noteDivisionToHz(chorusNote->getIndex()) : chorusRate->get());
                 chorus.setDepth(chorusDepth->get());
                 chorus.setMix(chorusMix->get());
                 chorus.process(ctx);
@@ -322,7 +387,7 @@ void MultiEffectProcessor::processEffect(int index, juce::AudioBuffer<float>& bu
         case TremoloIndex:
             if (tremoloOn && tremoloOn->get())
             {
-                tremolo.setRate(tremoloRate->get());
+                tremolo.setRate(tremoloSync && tremoloSync->get() ? noteDivisionToHz(tremoloNote->getIndex()) : tremoloRate->get());
                 tremolo.setDepth(tremoloDepth->get());
                 tremolo.process(ctx);
             }
@@ -330,7 +395,7 @@ void MultiEffectProcessor::processEffect(int index, juce::AudioBuffer<float>& bu
         case FlangerIndex:
             if (flangerOn && flangerOn->get())
             {
-                flanger.setRate(flangerRate->get());
+                flanger.setRate(flangerSync && flangerSync->get() ? noteDivisionToHz(flangerNote->getIndex()) : flangerRate->get());
                 flanger.setDepth(flangerDepth->get());
                 flanger.setFeedback(flangerFeedback->get());
                 flanger.setMix(flangerMix->get());
@@ -341,7 +406,7 @@ void MultiEffectProcessor::processEffect(int index, juce::AudioBuffer<float>& bu
             // Manual delay still used for now
             if (delayOn && delayOn->get())
             {
-                float dTime = delayTime->get();
+                float dTime = (delaySync && delaySync->get()) ? noteDivisionToMs(delayNote->getIndex()) : delayTime->get();
                 float dFbk = delayFeedback->get();
                 float dMix = delayMix->get();
                 int delaySamples = (int)(getSampleRate() * dTime / 1000.0);
@@ -379,6 +444,7 @@ void MultiEffectProcessor::processEffect(int index, juce::AudioBuffer<float>& bu
 void MultiEffectProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
+    updateTempoFromHost();
     for (auto i = getTotalNumInputChannels(); i < getTotalNumOutputChannels(); ++i)
         buffer.clear(i, 0, buffer.getNumSamples());
 
