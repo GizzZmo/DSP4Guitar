@@ -12,7 +12,7 @@
 
 A professional-grade, multi-effect **VST3/AU plugin** built with the **JUCE framework**, wrapped in a full **cyberpunk / Matrix-terminal aesthetic** — neon-green-on-black UI, scrolling Matrix-rain header animation, glowing LED toggles, and custom rotary knobs.
 
-The plugin provides a **13-effect processing chain** (including Noise Gate, Overdrive and Flanger), each independently bypassable. The signal flow is **reorderable at runtime** via ▲/▼ controls on each panel. Parameters are DAW-automatable via JUCE's `AudioProcessorValueTreeState` and both parameters and chain order are persisted across sessions. Parameters are DAW-automatable via JUCE's `AudioProcessorValueTreeState` and plugin state is persisted across sessions.
+The plugin provides a **13-effect processing chain** (including Noise Gate, Overdrive and Flanger), each independently bypassable. The signal flow is **reorderable at runtime** via ▲/▼ controls on each panel. Parameters and chain order are DAW-automatable / persisted via JUCE's `AudioProcessorValueTreeState`.
 
 ## UI Preview
 
@@ -67,7 +67,6 @@ Effects can be reordered at runtime with the ▲/▼ buttons on each panel. The 
 | 12 | **Delay** | Time (1–2 000 ms), Feedback, Mix |
 | 13 | **Reverb** | Room Size, Damping, Wet Level, Dry Level, Width |
 
-A factory preset browser with 20 presets (filtered by category) is available in the UI. 
 ## Factory Presets
 
 The plugin ships with **20 factory presets** organised by category:
@@ -87,33 +86,19 @@ The plugin ships with **20 factory presets** organised by category:
 | Experimental | Ring Mod Sci-Fi |
 
 Use the category filter and preset combo in the UI, then press **Load**. Chain order is also restored with the plugin state.
+
+
+## Tempo Sync
+
+Delay, Tremolo, Phaser, Chorus, Flanger and Auto Wah can lock to the host tempo (MIDI clock / DAW BPM).
+
+- Enable the **Sync** toggle on the effect.
+- Choose a note division: 1/1, 1/2, 1/2., 1/4, 1/4., 1/8, 1/8., 1/16, 1/16., 1/32.
+- When Sync is off, the free-running rate or time parameter is used.
 
 See [`Documentation/effects-reference.md`](Documentation/effects-reference.md) for the full parameter reference.
 
 
-## Factory Presets
-
-The plugin ships with **20 factory presets** organised by category:
-
-| Category | Examples |
-|----------|----------|
-| Clean | Clean Sparkle, Wide Chorus, Clean Delay |
-| Drive | Crunch Rhythm |
-| Lead | Lead Sustain, High Gain Lead |
-| Fuzz | Fuzz Face, Vintage Fuzz |
-| Ambient | Ambient Wash, Big Room |
-| Modulation | Wah Solo, Phaser Sweep, Flanger Jet, Tremolo Pulse, Auto Wah Funk |
-| Lo-Fi | Lo-Fi Crush |
-| Utility | Gate & Boost |
-| Dynamics | Multiband Glue |
-| Time | Slapback Delay |
-| Experimental | Ring Mod Sci-Fi |
-
-Use the category filter and preset combo in the UI, then press **Load**. Chain order is also restored with the plugin state.
-
-See [`Documentation/effects-reference.md`](Documentation/effects-reference.md) for the full parameter reference, including ranges and default values.
-
----
 
 ## Cyberpunk Colour Palette
 
